@@ -1,0 +1,29 @@
+Mahjong Recognizer
+Copyright (c) 2026 XTTTZ and contributors
+
+This application's corresponding source and selected model weights are provided
+under the GNU Affero General Public License, version 3 (AGPL-3.0-only). See LICENSE.
+Public source: https://github.com/XTTTZ/mahjong-recognizer
+Model releases: https://github.com/XTTTZ/mahjong-recognizer/releases
+
+The detector uses Ultralytics YOLO and derives from the official yolo26s pretrained
+weights. Ultralytics is copyright its contributors and licensed under AGPL-3.0.
+https://github.com/ultralytics/ultralytics
+https://www.ultralytics.com/license
+
+The classifier uses PyTorch / Torchvision's EfficientNet V2 S and the official
+ImageNet-pretrained efficientnet_v2_s-dd5fe13b.pth initialization. Their respective
+licenses and pretrained weight terms apply to those upstream components.
+https://github.com/pytorch/vision
+https://docs.pytorch.org/vision/0.23/models/generated/torchvision.models.efficientnet_v2_s.html
+
+Training data: Mahjong, workspace mahjong-anaun, project mahjong-lfhxf, version 2,
+published on Roboflow Universe under CC BY 4.0. Attribution and source history:
+https://universe.roboflow.com/mahjong-anaun/mahjong-lfhxf/dataset/2
+https://creativecommons.org/licenses/by/4.0/
+Local modifications include annotation auditing, exclusion, deduplication, grouped
+splitting and training transformations. No raw photographs are redistributed here.
+See docs/data/DATASET_CARD.md and docs/data/DATASET_V4.md for provenance and limits.
+
+Other third-party packages retain their own licenses. This notice does not
+relicense their separately distributed source or assets.

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-26",
+  "reviewed_roi_candidates": 353,
+  "classes_semantics_reviewed_crops": 172,
+  "source_evidence": [
+    {
+      "source_id": "train/IMG_3378_jpeg.rf.727e0c64fea25020c5e50c37e7836393.jpg",
+      "evidence_kind": "initial_raw_contact",
+      "sample_index": 30,
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/audit/contact-01.jpg",
+      "slot_zero_based": 30,
+      "note": "COCO dimensions disagree with decoded photo; boxes shown away from actual tiles. Structural quarantine already inherited from v2.",
+      "decision_type": "manual_confirmed"
+    },
+    {
+      "source_id": "train/IMG_3272_jpeg.rf.295a3d0f3019dd7cd4a3b148599931ce.jpg",
+      "evidence_kind": "initial_raw_contact",
+      "sample_index": 44,
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/audit/contact-02.jpg",
+      "slot_zero_based": 4,
+      "note": "COCO dimensions disagree with decoded photo; boxes shown away from actual tiles. Structural quarantine already inherited from v2.",
+      "decision_type": "manual_confirmed"
+    },
+    {
+      "source_id": "train/hand_155_jpg.rf.a0a478393877dd185e687326fc617e67.jpg",
+      "evidence_kind": "initial_raw_contact",
+      "sample_index": 58,
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/audit/contact-02.jpg",
+      "slot_zero_based": 18,
+      "note": "Full table photo: lower hand annotated while several visible center-table front faces are not annotated. Raw frame is not an exhaustive all-face gold image.",
+      "decision_type": "manual_confirmed"
+    },
+    {
+      "source_id": "train/462562057_570570009015003_3004578159122575710_n_jpg.rf.ec8b9ebb594a1be6a253c915622d81d5.jpg",
+      "evidence_kind": "initial_raw_contact",
+      "sample_index": 71,
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/audit/contact-02.jpg",
+      "slot_zero_based": 31,
+      "note": "Mixed full-table context; front-face annotation completeness is unclear and unreviewed outside the target hand. Conservative quarantine, not proof every label is wrong.",
+      "decision_type": "heuristic_quarantine"
+    },
+    {
+      "source_id": "train/S__18899104_jpg.rf.37a9faf867af85adc02710fd1cf66e31.jpg",
+      "candidate_index": 197,
+      "evidence_kind": "oracle_roi_contact_and_spot_full_resolution",
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/roi-review-v3/roi-review-07.jpg",
+      "slot_zero_based": 17,
+      "note": "Separate blue-backed wall tiles remain behind annotated front row inside ROI.",
+      "ontology_caveat": "Unannotated backs are scope errors under the existing 43-class target ontology, but may be legal background in a separately versioned face-only ontology.",
+      "decision_type": "manual_confirmed_scope_problem"
+    },
+    {
+      "source_id": "train/S__18907143_jpg.rf.31b5ba30559f940fc88b20c6a98a67ce.jpg",
+      "candidate_index": 206,
+      "evidence_kind": "oracle_roi_contact_and_spot_full_resolution",
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/roi-review-v3/roi-review-07.jpg",
+      "slot_zero_based": 26,
+      "note": "Separate yellow-backed wall remains inside ROI above annotated front row.",
+      "ontology_caveat": "Unannotated backs are scope errors under the existing 43-class target ontology, but may be legal background in a separately versioned face-only ontology.",
+      "decision_type": "manual_confirmed_scope_problem"
+    },
+    {
+      "source_id": "train/S__18907313_jpg.rf.8db481cd6257a74d46b370c354c32a48.jpg",
+      "candidate_index": 350,
+      "evidence_kind": "oracle_roi_contact_and_spot_full_resolution",
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/roi-review-v3/roi-review-12.jpg",
+      "slot_zero_based": 20,
+      "note": "Two blue-backed tiles remain at lower-right inside ROI without annotations.",
+      "ontology_caveat": "Unannotated backs are scope errors under the existing 43-class target ontology, but may be legal background in a separately versioned face-only ontology.",
+      "decision_type": "manual_confirmed_scope_problem"
+    },
+    {
+      "source_id": "train/S__18899105_jpg.rf.2363fb509458c51c1bddb35e77928982.jpg",
+      "candidate_index": 198,
+      "evidence_kind": "oracle_roi_contact_and_spot_full_resolution",
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/roi-review-v3/roi-review-07.jpg",
+      "slot_zero_based": 18,
+      "note": "Full-resolution check distinguishes blue top/side borders belonging to the annotated front-row tiles from separate background objects; not all blue pixels imply missing objects.",
+      "ontology_caveat": "Unannotated backs are scope errors under the existing 43-class target ontology, but may be legal background in a separately versioned face-only ontology.",
+      "decision_type": "heuristic_quarantine_after_visual_review"
+    },
+    {
+      "source_id": "train/S__18907184_jpg.rf.9f6faa2a9caf2b00a5f50c48e87bb7d3.jpg",
+      "candidate_index": 243,
+      "evidence_kind": "oracle_roi_contact_and_spot_full_resolution",
+      "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/roi-review-v3/roi-review-09.jpg",
+      "slot_zero_based": 3,
+      "note": "Additional partly cut tile-like objects touch the bottom ROI edge; conservatively quarantined as ambiguous, not asserted wrong class labels.",
+      "ontology_caveat": "Unannotated backs are scope errors under the existing 43-class target ontology, but may be legal background in a separately versioned face-only ontology.",
+      "decision_type": "heuristic_quarantine_after_visual_review"
+    }
+  ],
+  "limits": [
+    "No exhaustive independent reannotation of all 11921 photos.",
+    "Face-only and face-plus-back target policies must not be mixed silently.",
+    "Visual review cannot establish capture-session independence."
+  ]
+}

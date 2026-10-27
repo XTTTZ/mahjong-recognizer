@@ -1,0 +1,2 @@
+# Copy to .dev.vars (ignored). Never put a Modal API management token here.
+MODAL_PROXY_TOKEN=

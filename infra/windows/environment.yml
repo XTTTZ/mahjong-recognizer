@@ -1,0 +1,7 @@
+name: mahjong-train
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11.17
+  - pip=26.2.2
+  - git=2.56.0

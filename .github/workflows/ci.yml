@@ -1,0 +1,33 @@
+name: Validate
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: mahjong-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run worker:types -- --check
+      - run: npm run worker:dry-run
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: infra/requirements-test.txt
+      - run: python -m pip install -r infra/requirements-test.txt
+      - run: python -m unittest discover -s tests/ml -v
+      - run: python -m unittest discover -s infra/windows/tests -v

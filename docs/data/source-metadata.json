@@ -1,0 +1,24 @@
+{
+  "project": "mahjong-anaun/mahjong-lfhxf",
+  "version": {
+    "id": "mahjong-anaun/mahjong-lfhxf/2",
+    "name": "2025-12-12 6:50pm",
+    "created": 1765594208.934,
+    "images": 11921,
+    "splits": {
+      "valid": 718,
+      "test": 426,
+      "train": 10777
+    },
+    "preprocessing": {},
+    "augmentation": {},
+    "exports": [
+      "coco",
+      "yolov8"
+    ]
+  },
+  "project_license": "CC BY 4.0",
+  "export_format": "coco",
+  "export_size_field": 4447.371741999999,
+  "download_url_stored": false
+}

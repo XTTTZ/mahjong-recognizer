@@ -1,0 +1,2468 @@
+{
+  "schema_version": 1,
+  "source": "mahjong-anaun/mahjong-lfhxf/2",
+  "parent_category_excluded": {
+    "id": 0,
+    "name": "mahjong-yolo"
+  },
+  "model_index_convention": "Contiguous zero-based order by original COCO category ID after excluding the parent category. Training must save/verify its own filtered category list.",
+  "mapping_notes": [
+    "All 43 category tokens visually reviewed against four annotated crops per category; this verifies semantics, not every annotation.",
+    "1z–7z map to 东/南/西/北/白板/发/中.",
+    "1h–8h map to 春/夏/秋/冬/梅/兰/菊/竹; 7h=菊 and 8h=竹.",
+    "Some crops contain partial or occluded faces; partial visibility remains a separate data-quality concern."
+  ],
+  "classes": [
+    {
+      "coco_id": 1,
+      "model_index": 0,
+      "token": "1h",
+      "label_zh": "春",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/416956372_783278823828133_6108335614126509016_n_jpg.rf.c70079cb4202087fe67cba456b6a0ace.jpg",
+            "bbox": [
+              1736.5,
+              587.31,
+              135.72,
+              126.03
+            ],
+            "annotation_id": 482,
+            "image_id": 59
+          },
+          {
+            "file": "train/hand_034_jpg.rf.500009e9481a50740147f9889c94fc5e.jpg",
+            "bbox": [
+              1790.1,
+              1133.24,
+              115.94,
+              107.93
+            ],
+            "annotation_id": 620,
+            "image_id": 73
+          },
+          {
+            "file": "train/9_150_jpg.rf.52b4fda1a68f15ef87ecf7c7c46b162c.jpg",
+            "bbox": [
+              1694.32,
+              1518.66,
+              253.35,
+              238.71
+            ],
+            "annotation_id": 1170,
+            "image_id": 119
+          },
+          {
+            "file": "train/108_060_jpg.rf.df36e49237821652dc6fa7a4494184ea.jpg",
+            "bbox": [
+              2201.3,
+              683.82,
+              337.01,
+              334.09
+            ],
+            "annotation_id": 1324,
+            "image_id": 135
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 0
+      }
+    },
+    {
+      "coco_id": 2,
+      "model_index": 1,
+      "token": "1m",
+      "label_zh": "1万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              826.43,
+              73.57,
+              84.56,
+              36.95
+            ],
+            "annotation_id": 19,
+            "image_id": 0
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              606.07,
+              1340.78,
+              214.61,
+              140.48
+            ],
+            "annotation_id": 52,
+            "image_id": 2
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              2936.84,
+              828.21,
+              274.07,
+              333.41
+            ],
+            "annotation_id": 68,
+            "image_id": 3
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              287.33,
+              361.19,
+              114.51,
+              130.3
+            ],
+            "annotation_id": 85,
+            "image_id": 5
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 1
+      }
+    },
+    {
+      "coco_id": 3,
+      "model_index": 2,
+      "token": "1p",
+      "label_zh": "1筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              304.85,
+              704.53,
+              93.95,
+              95.94
+            ],
+            "annotation_id": 33,
+            "image_id": 1
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              29.99,
+              1500.22,
+              285.36,
+              341.83
+            ],
+            "annotation_id": 41,
+            "image_id": 2
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              2177.49,
+              904.95,
+              244.3,
+              315.08
+            ],
+            "annotation_id": 67,
+            "image_id": 3
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              3167,
+              883.99,
+              280.24,
+              332.93
+            ],
+            "annotation_id": 70,
+            "image_id": 3
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 2
+      }
+    },
+    {
+      "coco_id": 4,
+      "model_index": 3,
+      "token": "1s",
+      "label_zh": "1条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              1684.17,
+              850.53,
+              241.1,
+              320.87
+            ],
+            "annotation_id": 62,
+            "image_id": 3
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              3442.38,
+              895.87,
+              289.23,
+              347.59
+            ],
+            "annotation_id": 69,
+            "image_id": 3
+          },
+          {
+            "file": "train/S__18907151_jpg.rf.e99ae3d1175e2c5a53fdb142c93dc2ff.jpg",
+            "bbox": [
+              340,
+              303,
+              99,
+              81
+            ],
+            "annotation_id": 164,
+            "image_id": 18
+          },
+          {
+            "file": "train/S__18907152_jpg.rf.e432272a027a88651be05d00b98d15ef.jpg",
+            "bbox": [
+              420,
+              377,
+              89,
+              108
+            ],
+            "annotation_id": 207,
+            "image_id": 28
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 3
+      }
+    },
+    {
+      "coco_id": 5,
+      "model_index": 4,
+      "token": "1z",
+      "label_zh": "东",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2226.38,
+              0,
+              264.36,
+              169.15
+            ],
+            "annotation_id": 133,
+            "image_id": 8
+          },
+          {
+            "file": "train/S__18907151_jpg.rf.e99ae3d1175e2c5a53fdb142c93dc2ff.jpg",
+            "bbox": [
+              338,
+              510,
+              111,
+              95
+            ],
+            "annotation_id": 161,
+            "image_id": 18
+          },
+          {
+            "file": "train/S__18907152_jpg.rf.e432272a027a88651be05d00b98d15ef.jpg",
+            "bbox": [
+              215,
+              393,
+              94,
+              102
+            ],
+            "annotation_id": 204,
+            "image_id": 28
+          },
+          {
+            "file": "train/S__18907152_jpg.rf.94a3be287c826d5b96dd3ad40f1b232f.jpg",
+            "bbox": [
+              227,
+              371,
+              86,
+              94
+            ],
+            "annotation_id": 337,
+            "image_id": 48
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 4
+      }
+    },
+    {
+      "coco_id": 6,
+      "model_index": 5,
+      "token": "2h",
+      "label_zh": "夏",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              744.43,
+              1455.25,
+              190.67,
+              238.93
+            ],
+            "annotation_id": 97,
+            "image_id": 8
+          },
+          {
+            "file": "train/hand_145_jpg.rf.047d27da8493944108ad0025ca9e753a.jpg",
+            "bbox": [
+              69.97,
+              637.34,
+              90.95,
+              122.87
+            ],
+            "annotation_id": 416,
+            "image_id": 56
+          },
+          {
+            "file": "train/393113111_1057842128599505_8241487834694552032_n_jpg.rf.62f7526e2d4e24fd09a0c1011fee9727.jpg",
+            "bbox": [
+              90.26,
+              399.29,
+              60.84,
+              54.89
+            ],
+            "annotation_id": 648,
+            "image_id": 78
+          },
+          {
+            "file": "train/9_150_jpg.rf.52b4fda1a68f15ef87ecf7c7c46b162c.jpg",
+            "bbox": [
+              2013.18,
+              1540.62,
+              273.42,
+              235.93
+            ],
+            "annotation_id": 1178,
+            "image_id": 119
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 5
+      }
+    },
+    {
+      "coco_id": 7,
+      "model_index": 6,
+      "token": "2m",
+      "label_zh": "2万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              1226.73,
+              8.79,
+              44.71,
+              62.52
+            ],
+            "annotation_id": 6,
+            "image_id": 0
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              825.06,
+              1344.66,
+              189.16,
+              136.45
+            ],
+            "annotation_id": 51,
+            "image_id": 2
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              395.33,
+              325.95,
+              123.52,
+              130.35
+            ],
+            "annotation_id": 86,
+            "image_id": 5
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2798.36,
+              1428.78,
+              179.54,
+              230.5
+            ],
+            "annotation_id": 98,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 6
+      }
+    },
+    {
+      "coco_id": 8,
+      "model_index": 7,
+      "token": "2p",
+      "label_zh": "2筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              192.9,
+              706.53,
+              78.96,
+              100.93
+            ],
+            "annotation_id": 34,
+            "image_id": 1
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              300.21,
+              1504.16,
+              286.51,
+              338.4
+            ],
+            "annotation_id": 44,
+            "image_id": 2
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              705.4,
+              228.78,
+              108.06,
+              130.15
+            ],
+            "annotation_id": 80,
+            "image_id": 5
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              799.76,
+              202.02,
+              105.69,
+              129.16
+            ],
+            "annotation_id": 81,
+            "image_id": 5
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 7
+      }
+    },
+    {
+      "coco_id": 9,
+      "model_index": 8,
+      "token": "2s",
+      "label_zh": "2条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              190.17,
+              460.65,
+              71.78,
+              106.56
+            ],
+            "annotation_id": 15,
+            "image_id": 0
+          },
+          {
+            "file": "train/20240505_030556812_jpg.rf.e660f5cf728133702c48cfe9cee2a68c.jpg",
+            "bbox": [
+              678.46,
+              150,
+              117.69,
+              151.54
+            ],
+            "annotation_id": 135,
+            "image_id": 9
+          },
+          {
+            "file": "train/20240505_030556812_jpg.rf.e660f5cf728133702c48cfe9cee2a68c.jpg",
+            "bbox": [
+              1101.54,
+              773.85,
+              111.54,
+              155.38
+            ],
+            "annotation_id": 144,
+            "image_id": 9
+          },
+          {
+            "file": "train/S__18907315_jpg.rf.0bdfd2b684707d103e13677c9aae6faa.jpg",
+            "bbox": [
+              244,
+              324,
+              154,
+              155
+            ],
+            "annotation_id": 244,
+            "image_id": 32
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 8
+      }
+    },
+    {
+      "coco_id": 10,
+      "model_index": 9,
+      "token": "2z",
+      "label_zh": "南",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              1502.87,
+              1446.48,
+              177.13,
+              230.5
+            ],
+            "annotation_id": 102,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              1700.35,
+              1444.86,
+              178.98,
+              230.38
+            ],
+            "annotation_id": 103,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              1881.65,
+              1442.71,
+              177.89,
+              229.9
+            ],
+            "annotation_id": 105,
+            "image_id": 8
+          },
+          {
+            "file": "train/hand_102_jpg.rf.4ba57a8db23a286f6672621920b51ac7.jpg",
+            "bbox": [
+              535.72,
+              391.59,
+              91.95,
+              117.88
+            ],
+            "annotation_id": 234,
+            "image_id": 31
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 9
+      }
+    },
+    {
+      "coco_id": 11,
+      "model_index": 10,
+      "token": "3h",
+      "label_zh": "秋",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_102_jpg.rf.4ba57a8db23a286f6672621920b51ac7.jpg",
+            "bbox": [
+              71.96,
+              387.59,
+              76.96,
+              118.88
+            ],
+            "annotation_id": 239,
+            "image_id": 31
+          },
+          {
+            "file": "train/410154101_1022034132216973_6984183087897405536_n_jpg.rf.39c39bbba63ef6c52f1c8143f0fd685e.jpg",
+            "bbox": [
+              727.61,
+              17.14,
+              35.25,
+              52.48
+            ],
+            "annotation_id": 988,
+            "image_id": 104
+          },
+          {
+            "file": "train/hand_091_jpg.rf.034f72252ef9bea61e76b0a6c5a39901.jpg",
+            "bbox": [
+              94.92,
+              411.52,
+              54.95,
+              71.91
+            ],
+            "annotation_id": 1216,
+            "image_id": 124
+          },
+          {
+            "file": "train/382645002_1008823510368523_1436380457729058904_n_jpg.rf.92530ed2c8bb939d0d19b0b5f586900c.jpg",
+            "bbox": [
+              147.77,
+              736.98,
+              108.18,
+              139.82
+            ],
+            "annotation_id": 1307,
+            "image_id": 133
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 10
+      }
+    },
+    {
+      "coco_id": 12,
+      "model_index": 11,
+      "token": "3m",
+      "label_zh": "3万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1007.23,
+              1353.45,
+              186,
+              131.59
+            ],
+            "annotation_id": 47,
+            "image_id": 2
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              500.19,
+              290.4,
+              114.26,
+              130.55
+            ],
+            "annotation_id": 77,
+            "image_id": 5
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              935.6,
+              1449.5,
+              192.84,
+              237.92
+            ],
+            "annotation_id": 101,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              3727.04,
+              153.87,
+              248.4,
+              198.05
+            ],
+            "annotation_id": 131,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 11
+      }
+    },
+    {
+      "coco_id": 13,
+      "model_index": 12,
+      "token": "3p",
+      "label_zh": "3筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              149.19,
+              213.32,
+              94.53,
+              33.63
+            ],
+            "annotation_id": 14,
+            "image_id": 0
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              82.96,
+              710.53,
+              73.96,
+              96.94
+            ],
+            "annotation_id": 35,
+            "image_id": 1
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              576.09,
+              1511.79,
+              277.48,
+              339.65
+            ],
+            "annotation_id": 39,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2790,
+              187.29,
+              244.15,
+              258.63
+            ],
+            "annotation_id": 124,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 12
+      }
+    },
+    {
+      "coco_id": 14,
+      "model_index": 13,
+      "token": "3s",
+      "label_zh": "3条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              258.35,
+              438.08,
+              73.94,
+              101.17
+            ],
+            "annotation_id": 7,
+            "image_id": 0
+          },
+          {
+            "file": "train/20240505_030556812_jpg.rf.e660f5cf728133702c48cfe9cee2a68c.jpg",
+            "bbox": [
+              1212.31,
+              775.39,
+              114.62,
+              156.15
+            ],
+            "annotation_id": 145,
+            "image_id": 9
+          },
+          {
+            "file": "train/S__18907315_jpg.rf.0bdfd2b684707d103e13677c9aae6faa.jpg",
+            "bbox": [
+              232,
+              241,
+              156,
+              157
+            ],
+            "annotation_id": 243,
+            "image_id": 32
+          },
+          {
+            "file": "train/Screenshot-2025-05-21-at-18_29_20_jpg.rf.c4f4437aae51fa32ed4663282f99e01b.jpg",
+            "bbox": [
+              113.01,
+              126.5,
+              114.77,
+              39.64
+            ],
+            "annotation_id": 255,
+            "image_id": 33
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 13
+      }
+    },
+    {
+      "coco_id": 15,
+      "model_index": 14,
+      "token": "3z",
+      "label_zh": "西",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              792.15,
+              223.57,
+              39.68,
+              73.64
+            ],
+            "annotation_id": 17,
+            "image_id": 0
+          },
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              840.01,
+              207.14,
+              39.31,
+              72.4
+            ],
+            "annotation_id": 18,
+            "image_id": 0
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              3274.82,
+              1567.23,
+              294.4,
+              333.24
+            ],
+            "annotation_id": 48,
+            "image_id": 2
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              1189.07,
+              917.11,
+              246.39,
+              317.87
+            ],
+            "annotation_id": 63,
+            "image_id": 3
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 14
+      }
+    },
+    {
+      "coco_id": 16,
+      "model_index": 15,
+      "token": "4h",
+      "label_zh": "冬",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              863.57,
+              699.53,
+              101.95,
+              99.93
+            ],
+            "annotation_id": 20,
+            "image_id": 1
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              863.34,
+              143.33,
+              222.51,
+              147.58
+            ],
+            "annotation_id": 107,
+            "image_id": 8
+          },
+          {
+            "file": "train/hand_102_jpg.rf.4ba57a8db23a286f6672621920b51ac7.jpg",
+            "bbox": [
+              153.92,
+              389.59,
+              89.95,
+              118.88
+            ],
+            "annotation_id": 238,
+            "image_id": 31
+          },
+          {
+            "file": "train/3C60B469-A137-4F2B-B7A6-BB1972B06B2F_png.rf.0d97346ac1d46b56f895b214f451492c.jpg",
+            "bbox": [
+              14.18,
+              15.34,
+              57.15,
+              66.19
+            ],
+            "annotation_id": 303,
+            "image_id": 45
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 15
+      }
+    },
+    {
+      "coco_id": 17,
+      "model_index": 16,
+      "token": "4m",
+      "label_zh": "4万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              368.15,
+              388.91,
+              76.1,
+              92.03
+            ],
+            "annotation_id": 1,
+            "image_id": 0
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1203.22,
+              1362.47,
+              191.2,
+              126.73
+            ],
+            "annotation_id": 53,
+            "image_id": 2
+          },
+          {
+            "file": "train/S__18899044_jpg.rf.392b525d8c15605f73d7326e16761df0.jpg",
+            "bbox": [
+              355,
+              374,
+              196,
+              213
+            ],
+            "annotation_id": 73,
+            "image_id": 4
+          },
+          {
+            "file": "train/4m_add2_2_jpg.rf.012d1464d7d8fabac996f510bcc7a857.jpg",
+            "bbox": [
+              358,
+              711,
+              296,
+              290
+            ],
+            "annotation_id": 88,
+            "image_id": 7
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 16
+      }
+    },
+    {
+      "coco_id": 18,
+      "model_index": 17,
+      "token": "4p",
+      "label_zh": "4筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              750.62,
+              705.53,
+              90.95,
+              96.94
+            ],
+            "annotation_id": 29,
+            "image_id": 1
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              644.68,
+              704.53,
+              86.96,
+              95.94
+            ],
+            "annotation_id": 30,
+            "image_id": 1
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              525.74,
+              705.53,
+              96.95,
+              96.94
+            ],
+            "annotation_id": 31,
+            "image_id": 1
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              413.79,
+              708.53,
+              91.95,
+              94.94
+            ],
+            "annotation_id": 32,
+            "image_id": 1
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 17
+      }
+    },
+    {
+      "coco_id": 19,
+      "model_index": 18,
+      "token": "4s",
+      "label_zh": "4条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              318.85,
+              410.39,
+              69.91,
+              99.45
+            ],
+            "annotation_id": 2,
+            "image_id": 0
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              133.32,
+              913.5,
+              283.49,
+              351.82
+            ],
+            "annotation_id": 61,
+            "image_id": 3
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              3040.4,
+              110.69,
+              247.72,
+              192.64
+            ],
+            "annotation_id": 128,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2540,
+              78.88,
+              242.43,
+              183.48
+            ],
+            "annotation_id": 130,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 18
+      }
+    },
+    {
+      "coco_id": 20,
+      "model_index": 19,
+      "token": "4z",
+      "label_zh": "北",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              3541.6,
+              1575.85,
+              322.27,
+              340.98
+            ],
+            "annotation_id": 43,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              3150,
+              372.37,
+              205.04,
+              240.35
+            ],
+            "annotation_id": 127,
+            "image_id": 8
+          },
+          {
+            "file": "train/4z_sub2_1_jpg.rf.c58948d1bd8750b78194c779f21f648f.jpg",
+            "bbox": [
+              451,
+              886,
+              189,
+              255
+            ],
+            "annotation_id": 154,
+            "image_id": 15
+          },
+          {
+            "file": "train/S__18898949_jpg.rf.0ca267fb32efafa7713688e67ac526ba.jpg",
+            "bbox": [
+              464,
+              738,
+              165,
+              174
+            ],
+            "annotation_id": 384,
+            "image_id": 53
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 19
+      }
+    },
+    {
+      "coco_id": 21,
+      "model_index": 20,
+      "token": "5h",
+      "label_zh": "梅",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              172.01,
+              1458.18,
+              197.2,
+              246.21
+            ],
+            "annotation_id": 94,
+            "image_id": 8
+          },
+          {
+            "file": "train/382645002_1008823510368523_1436380457729058904_n_jpg.rf.92530ed2c8bb939d0d19b0b5f586900c.jpg",
+            "bbox": [
+              36.71,
+              757.21,
+              103.49,
+              135.11
+            ],
+            "annotation_id": 1306,
+            "image_id": 133
+          },
+          {
+            "file": "train/IMG_6303_jpeg.rf.91219673089f7335b3deaa88402f0988.jpg",
+            "bbox": [
+              2051.08,
+              914.02,
+              414.07,
+              399.06
+            ],
+            "annotation_id": 1803,
+            "image_id": 184
+          },
+          {
+            "file": "train/MJTiles_Fullset_png.rf.706453decbb0d4513efa24a4ac083831.jpg",
+            "bbox": [
+              1735.56,
+              571.59,
+              102.84,
+              130.58
+            ],
+            "annotation_id": 1921,
+            "image_id": 192
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 20
+      }
+    },
+    {
+      "coco_id": 22,
+      "model_index": 21,
+      "token": "5m",
+      "label_zh": "5万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              433.77,
+              359.68,
+              66.94,
+              91.65
+            ],
+            "annotation_id": 9,
+            "image_id": 0
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1391.5,
+              1377.83,
+              191.48,
+              122.94
+            ],
+            "annotation_id": 56,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              1317.89,
+              1446.64,
+              185.49,
+              229.58
+            ],
+            "annotation_id": 93,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2066.37,
+              1440.81,
+              175.34,
+              228.74
+            ],
+            "annotation_id": 99,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-1.jpg",
+        "contact_sheet_row_zero_based": 21
+      }
+    },
+    {
+      "coco_id": 23,
+      "model_index": 22,
+      "token": "5p",
+      "label_zh": "5筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              1420.29,
+              685.54,
+              100.95,
+              92.94
+            ],
+            "annotation_id": 24,
+            "image_id": 1
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1118.47,
+              1525.58,
+              276.6,
+              340.6
+            ],
+            "annotation_id": 45,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2628.74,
+              470,
+              172.17,
+              205.61
+            ],
+            "annotation_id": 114,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2543.33,
+              296.67,
+              212.6,
+              155.79
+            ],
+            "annotation_id": 115,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 0
+      }
+    },
+    {
+      "coco_id": 24,
+      "model_index": 23,
+      "token": "5s",
+      "label_zh": "5条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              675.52,
+              963.96,
+              264.05,
+              329.45
+            ],
+            "annotation_id": 66,
+            "image_id": 3
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              64.68,
+              433.33,
+              117.19,
+              137.68
+            ],
+            "annotation_id": 82,
+            "image_id": 5
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2803.33,
+              476.29,
+              242.1,
+              253.19
+            ],
+            "annotation_id": 121,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2308.55,
+              105.65,
+              250.55,
+              205.61
+            ],
+            "annotation_id": 126,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 1
+      }
+    },
+    {
+      "coco_id": 25,
+      "model_index": 24,
+      "token": "5z",
+      "label_zh": "白板",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              3001.28,
+              1560.44,
+              287.16,
+              334.4
+            ],
+            "annotation_id": 49,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2723.33,
+              792.4,
+              241.02,
+              180.29
+            ],
+            "annotation_id": 116,
+            "image_id": 8
+          },
+          {
+            "file": "train/S__18907317_jpg.rf.05d7d4c55e0fa7cd27e89e923178fb09.jpg",
+            "bbox": [
+              338,
+              320,
+              171,
+              168
+            ],
+            "annotation_id": 174,
+            "image_id": 21
+          },
+          {
+            "file": "train/S__18907315_jpg.rf.0bdfd2b684707d103e13677c9aae6faa.jpg",
+            "bbox": [
+              354,
+              614,
+              114,
+              111
+            ],
+            "annotation_id": 248,
+            "image_id": 32
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 2
+      }
+    },
+    {
+      "coco_id": 26,
+      "model_index": 25,
+      "token": "6h",
+      "label_zh": "兰",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              363.02,
+              1455.87,
+              202.2,
+              236.91
+            ],
+            "annotation_id": 95,
+            "image_id": 8
+          },
+          {
+            "file": "train/hand_145_jpg.rf.047d27da8493944108ad0025ca9e753a.jpg",
+            "bbox": [
+              165.92,
+              636.34,
+              106.94,
+              125.87
+            ],
+            "annotation_id": 415,
+            "image_id": 56
+          },
+          {
+            "file": "train/420715709_365459442861814_6331997183739380019_n_jpg.rf.d57cf9878390adad0ad07e3b93a64b79.jpg",
+            "bbox": [
+              522.48,
+              1607.23,
+              460.03,
+              475.27
+            ],
+            "annotation_id": 599,
+            "image_id": 71
+          },
+          {
+            "file": "train/hand_034_jpg.rf.500009e9481a50740147f9889c94fc5e.jpg",
+            "bbox": [
+              1906.05,
+              1131.25,
+              92.95,
+              97.93
+            ],
+            "annotation_id": 619,
+            "image_id": 73
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 3
+      }
+    },
+    {
+      "coco_id": 27,
+      "model_index": 26,
+      "token": "6m",
+      "label_zh": "6万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1577.09,
+              1383.72,
+              195.96,
+              126.04
+            ],
+            "annotation_id": 55,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2230.58,
+              1438.59,
+              178.9,
+              228.53
+            ],
+            "annotation_id": 96,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              1703.33,
+              47.88,
+              268.09,
+              223.79
+            ],
+            "annotation_id": 119,
+            "image_id": 8
+          },
+          {
+            "file": "train/S__18907151_jpg.rf.e99ae3d1175e2c5a53fdb142c93dc2ff.jpg",
+            "bbox": [
+              345,
+              56,
+              81,
+              72
+            ],
+            "annotation_id": 169,
+            "image_id": 18
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 4
+      }
+    },
+    {
+      "coco_id": 28,
+      "model_index": 27,
+      "token": "6p",
+      "label_zh": "6筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              1316.34,
+              694.54,
+              87.96,
+              101.93
+            ],
+            "annotation_id": 25,
+            "image_id": 1
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1410,
+              1530.79,
+              268.69,
+              338.3
+            ],
+            "annotation_id": 50,
+            "image_id": 2
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              893.27,
+              171.91,
+              111.43,
+              131.85
+            ],
+            "annotation_id": 79,
+            "image_id": 5
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              1436.67,
+              60.36,
+              259.58,
+              208.46
+            ],
+            "annotation_id": 112,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 5
+      }
+    },
+    {
+      "coco_id": 29,
+      "model_index": 28,
+      "token": "6s",
+      "label_zh": "6条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              2428.78,
+              869.07,
+              239.69,
+              317.71
+            ],
+            "annotation_id": 72,
+            "image_id": 3
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              182.73,
+              397.18,
+              107.99,
+              138.13
+            ],
+            "annotation_id": 76,
+            "image_id": 5
+          },
+          {
+            "file": "train/Screenshot-2025-05-21-at-18_29_20_jpg.rf.c4f4437aae51fa32ed4663282f99e01b.jpg",
+            "bbox": [
+              183.5,
+              228.5,
+              133,
+              44.17
+            ],
+            "annotation_id": 253,
+            "image_id": 33
+          },
+          {
+            "file": "train/data4_jpg.rf.abdd4989b8f1a53ff42784e38880e1ab.jpg",
+            "bbox": [
+              346,
+              257,
+              117,
+              114
+            ],
+            "annotation_id": 281,
+            "image_id": 40
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 6
+      }
+    },
+    {
+      "coco_id": 30,
+      "model_index": 29,
+      "token": "6z",
+      "label_zh": "发",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              1750.12,
+              676.55,
+              99.95,
+              82.94
+            ],
+            "annotation_id": 21,
+            "image_id": 1
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              1643.18,
+              675.55,
+              90.95,
+              94.94
+            ],
+            "annotation_id": 22,
+            "image_id": 1
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              1536.23,
+              685.54,
+              92.95,
+              93.94
+            ],
+            "annotation_id": 23,
+            "image_id": 1
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              2752.5,
+              1546.84,
+              282.85,
+              333.53
+            ],
+            "annotation_id": 42,
+            "image_id": 2
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 7
+      }
+    },
+    {
+      "coco_id": 31,
+      "model_index": 30,
+      "token": "7h",
+      "label_zh": "菊",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hand_102_jpg.rf.4ba57a8db23a286f6672621920b51ac7.jpg",
+            "bbox": [
+              252.87,
+              391.59,
+              78.96,
+              117.88
+            ],
+            "annotation_id": 237,
+            "image_id": 31
+          },
+          {
+            "file": "train/420715709_365459442861814_6331997183739380019_n_jpg.rf.d57cf9878390adad0ad07e3b93a64b79.jpg",
+            "bbox": [
+              987.93,
+              1614.8,
+              399.03,
+              432.01
+            ],
+            "annotation_id": 597,
+            "image_id": 71
+          },
+          {
+            "file": "train/395359249_3191122207856049_8062735221152616860_n_jpg.rf.602c2ecd1580b80f02840e995a0c292f.jpg",
+            "bbox": [
+              1976.87,
+              2016.38,
+              638.98,
+              468.79
+            ],
+            "annotation_id": 892,
+            "image_id": 95
+          },
+          {
+            "file": "train/6_jpg.rf.5320ca9bb6f0d214791165c299c9ab22.jpg",
+            "bbox": [
+              2495.76,
+              1395.27,
+              557.67,
+              588.57
+            ],
+            "annotation_id": 1051,
+            "image_id": 110
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 8
+      }
+    },
+    {
+      "coco_id": 32,
+      "model_index": 31,
+      "token": "7m",
+      "label_zh": "7万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              482.96,
+              340.36,
+              67.63,
+              89.75
+            ],
+            "annotation_id": 5,
+            "image_id": 0
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1787.22,
+              1385.74,
+              188.78,
+              127.58
+            ],
+            "annotation_id": 54,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2966.75,
+              1425.7,
+              184.21,
+              231.38
+            ],
+            "annotation_id": 89,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2424.89,
+              1436.26,
+              176.16,
+              228.54
+            ],
+            "annotation_id": 90,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 9
+      }
+    },
+    {
+      "coco_id": 33,
+      "model_index": 32,
+      "token": "7p",
+      "label_zh": "7筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              288.37,
+              27.35,
+              71.3,
+              26.82
+            ],
+            "annotation_id": 12,
+            "image_id": 0
+          },
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              328.98,
+              40.27,
+              68.18,
+              28.21
+            ],
+            "annotation_id": 13,
+            "image_id": 0
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              1198.4,
+              694.54,
+              100.95,
+              105.93
+            ],
+            "annotation_id": 26,
+            "image_id": 1
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1678.42,
+              1535.48,
+              268.29,
+              336.42
+            ],
+            "annotation_id": 37,
+            "image_id": 2
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 10
+      }
+    },
+    {
+      "coco_id": 34,
+      "model_index": 33,
+      "token": "7s",
+      "label_zh": "7条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              882,
+              174.45,
+              41.19,
+              89.93
+            ],
+            "annotation_id": 11,
+            "image_id": 0
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              1439.45,
+              929.67,
+              244.28,
+              321.92
+            ],
+            "annotation_id": 64,
+            "image_id": 3
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2146.67,
+              202.66,
+              247.17,
+              263.83
+            ],
+            "annotation_id": 123,
+            "image_id": 8
+          },
+          {
+            "file": "train/Screenshot-2025-05-21-at-18_29_20_jpg.rf.c4f4437aae51fa32ed4663282f99e01b.jpg",
+            "bbox": [
+              229.5,
+              285,
+              131.01,
+              48.21
+            ],
+            "annotation_id": 252,
+            "image_id": 33
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 11
+      }
+    },
+    {
+      "coco_id": 35,
+      "model_index": 34,
+      "token": "7z",
+      "label_zh": "中",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              2487.66,
+              1545.2,
+              281.4,
+              338.64
+            ],
+            "annotation_id": 36,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              848.52,
+              307.29,
+              228.48,
+              165.95
+            ],
+            "annotation_id": 109,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              840,
+              483.33,
+              201.2,
+              142.28
+            ],
+            "annotation_id": 110,
+            "image_id": 8
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              836.67,
+              653.34,
+              215.94,
+              145.62
+            ],
+            "annotation_id": 111,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 12
+      }
+    },
+    {
+      "coco_id": 36,
+      "model_index": 35,
+      "token": "8h",
+      "label_zh": "竹",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              560.17,
+              1455.78,
+              188.11,
+              238.64
+            ],
+            "annotation_id": 91,
+            "image_id": 8
+          },
+          {
+            "file": "train/hand_145_jpg.rf.047d27da8493944108ad0025ca9e753a.jpg",
+            "bbox": [
+              274.85,
+              636.34,
+              97.95,
+              123.87
+            ],
+            "annotation_id": 414,
+            "image_id": 56
+          },
+          {
+            "file": "train/9_150_jpg.rf.52b4fda1a68f15ef87ecf7c7c46b162c.jpg",
+            "bbox": [
+              1835.87,
+              1682.89,
+              250.32,
+              262.26
+            ],
+            "annotation_id": 1168,
+            "image_id": 119
+          },
+          {
+            "file": "train/hand_091_jpg.rf.034f72252ef9bea61e76b0a6c5a39901.jpg",
+            "bbox": [
+              155.87,
+              412.51,
+              51.95,
+              70.92
+            ],
+            "annotation_id": 1217,
+            "image_id": 124
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 13
+      }
+    },
+    {
+      "coco_id": 37,
+      "model_index": 36,
+      "token": "8m",
+      "label_zh": "8万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              586.09,
+              296.85,
+              60.82,
+              87.03
+            ],
+            "annotation_id": 3,
+            "image_id": 0
+          },
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              532.59,
+              319.51,
+              68.62,
+              87.04
+            ],
+            "annotation_id": 4,
+            "image_id": 0
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              2083.33,
+              1383.33,
+              179.27,
+              115.6
+            ],
+            "annotation_id": 57,
+            "image_id": 2
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              3155.16,
+              1420.69,
+              180.91,
+              234.29
+            ],
+            "annotation_id": 92,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 14
+      }
+    },
+    {
+      "coco_id": 38,
+      "model_index": 37,
+      "token": "8p",
+      "label_zh": "8筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              745.01,
+              236.43,
+              38.69,
+              84.68
+            ],
+            "annotation_id": 16,
+            "image_id": 0
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              1092.45,
+              696.54,
+              90.95,
+              108.93
+            ],
+            "annotation_id": 27,
+            "image_id": 1
+          },
+          {
+            "file": "train/hand_028_jpg.rf.051d1e7dbaef6a793c9d34e187dcf04a.jpg",
+            "bbox": [
+              983.51,
+              698.53,
+              88.96,
+              106.93
+            ],
+            "annotation_id": 28,
+            "image_id": 1
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              1947.81,
+              1535.72,
+              264.84,
+              331.2
+            ],
+            "annotation_id": 38,
+            "image_id": 2
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 15
+      }
+    },
+    {
+      "coco_id": 39,
+      "model_index": 38,
+      "token": "8s",
+      "label_zh": "8条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              402.21,
+              949.48,
+              267.82,
+              341.42
+            ],
+            "annotation_id": 71,
+            "image_id": 3
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              875.85,
+              0,
+              221.83,
+              128.62
+            ],
+            "annotation_id": 108,
+            "image_id": 8
+          },
+          {
+            "file": "train/S__18907151_jpg.rf.e99ae3d1175e2c5a53fdb142c93dc2ff.jpg",
+            "bbox": [
+              341,
+              245,
+              93,
+              77
+            ],
+            "annotation_id": 165,
+            "image_id": 18
+          },
+          {
+            "file": "train/S__18907317_jpg.rf.05d7d4c55e0fa7cd27e89e923178fb09.jpg",
+            "bbox": [
+              470,
+              540,
+              146,
+              151
+            ],
+            "annotation_id": 177,
+            "image_id": 21
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 16
+      }
+    },
+    {
+      "coco_id": 40,
+      "model_index": 39,
+      "token": "9m",
+      "label_zh": "9万",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              644.11,
+              273.67,
+              57.69,
+              92.62
+            ],
+            "annotation_id": 8,
+            "image_id": 0
+          },
+          {
+            "file": "train/scene168401_png.rf.1e71ae819ea48950cd16536c5c2a52d2.jpg",
+            "bbox": [
+              694.98,
+              255.06,
+              48.59,
+              88.42
+            ],
+            "annotation_id": 10,
+            "image_id": 0
+          },
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              2300,
+              1396.67,
+              173.26,
+              105.85
+            ],
+            "annotation_id": 58,
+            "image_id": 2
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              1932.34,
+              904.53,
+              245.59,
+              317.09
+            ],
+            "annotation_id": 65,
+            "image_id": 3
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 17
+      }
+    },
+    {
+      "coco_id": 41,
+      "model_index": 40,
+      "token": "9p",
+      "label_zh": "9筒",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/home-mj-IMG_3194_png.rf.afb367a669ead0ea026466e946ff6f72.jpg",
+            "bbox": [
+              2213.82,
+              1539.1,
+              272.11,
+              339
+            ],
+            "annotation_id": 40,
+            "image_id": 2
+          },
+          {
+            "file": "train/S__18907151_jpg.rf.e99ae3d1175e2c5a53fdb142c93dc2ff.jpg",
+            "bbox": [
+              334,
+              895,
+              143,
+              128
+            ],
+            "annotation_id": 157,
+            "image_id": 18
+          },
+          {
+            "file": "train/C2F6668C-D7F7-46A0-B6FD-8B423A30FDA0_png.rf.76f22cb19c0d1bb8518c3a22bf895e38.jpg",
+            "bbox": [
+              1360.83,
+              54.16,
+              101.88,
+              153.11
+            ],
+            "annotation_id": 193,
+            "image_id": 23
+          },
+          {
+            "file": "train/C2F6668C-D7F7-46A0-B6FD-8B423A30FDA0_png.rf.76f22cb19c0d1bb8518c3a22bf895e38.jpg",
+            "bbox": [
+              1467.51,
+              55.83,
+              105.41,
+              142.5
+            ],
+            "annotation_id": 194,
+            "image_id": 23
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 18
+      }
+    },
+    {
+      "coco_id": 42,
+      "model_index": 41,
+      "token": "9s",
+      "label_zh": "9条",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              2689.27,
+              843.42,
+              237.59,
+              319.58
+            ],
+            "annotation_id": 59,
+            "image_id": 3
+          },
+          {
+            "file": "train/IMG_6072_jpeg_jpg.rf.1e6a9f9e9e43c4a2c43b8dba836cbac6.jpg",
+            "bbox": [
+              938.19,
+              917.45,
+              243.67,
+              323.68
+            ],
+            "annotation_id": 60,
+            "image_id": 3
+          },
+          {
+            "file": "train/Screenshot-2025-05-09-at-12_20_22-2x_jpg.rf.d961f660aaef882ad3e81c2ba9bf75c6.jpg",
+            "bbox": [
+              1257.87,
+              62.65,
+              112.71,
+              133.5
+            ],
+            "annotation_id": 78,
+            "image_id": 5
+          },
+          {
+            "file": "train/420537760_909660030533674_5673736151825129530_n_jpg.rf.cfb628108927c7c89535068fab1e057e.jpg",
+            "bbox": [
+              2983.33,
+              879.28,
+              178.02,
+              232.12
+            ],
+            "annotation_id": 120,
+            "image_id": 8
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 19
+      }
+    },
+    {
+      "coco_id": 43,
+      "model_index": 42,
+      "token": "back",
+      "label_zh": "牌背",
+      "visual_verification": {
+        "status": "reviewed_4_crops",
+        "examples": [
+          {
+            "file": "train/hikaku001_jpeg.rf.d03dc6e863a1d866d056e156aff3e3fc.jpg",
+            "bbox": [
+              69,
+              98,
+              114,
+              148
+            ],
+            "annotation_id": 1084,
+            "image_id": 115
+          },
+          {
+            "file": "train/hikaku001_jpeg.rf.d03dc6e863a1d866d056e156aff3e3fc.jpg",
+            "bbox": [
+              190,
+              140.5,
+              114,
+              148
+            ],
+            "annotation_id": 1085,
+            "image_id": 115
+          },
+          {
+            "file": "train/hikaku001_jpeg.rf.d03dc6e863a1d866d056e156aff3e3fc.jpg",
+            "bbox": [
+              306,
+              178.5,
+              112,
+              148
+            ],
+            "annotation_id": 1086,
+            "image_id": 115
+          },
+          {
+            "file": "train/hikaku001_jpeg.rf.d03dc6e863a1d866d056e156aff3e3fc.jpg",
+            "bbox": [
+              416,
+              201.5,
+              116,
+              145
+            ],
+            "annotation_id": 1087,
+            "image_id": 115
+          }
+        ],
+        "contact_sheet": "artifacts/data/roboflow/mahjong-lfhxf-v2/all-classes-2.jpg",
+        "contact_sheet_row_zero_based": 20
+      }
+    }
+  ]
+}

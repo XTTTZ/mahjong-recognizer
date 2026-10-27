@@ -1,0 +1,1 @@
+"""Reproducible Mahjong recognition pipeline."""

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "source": "mahjong-anaun/mahjong-lfhxf/2",
+  "audit_revision": 2,
+  "archive_sha256": "14640fb5a47707b35d8f0025260883aff4936a2893f2eba9e07758b063df1268",
+  "raw_root": "artifacts/data/roboflow/mahjong-lfhxf-v2/original",
+  "prepared_root": "artifacts/data/roboflow/mahjong-lfhxf-v2/prepared-v2",
+  "smoke_root": "artifacts/data/roboflow/mahjong-lfhxf-v2/smoke-v2",
+  "smoke_archive": "artifacts/data/roboflow/mahjong-lfhxf-v2/smoke-v2.zip",
+  "manifest_sha256": "05da350f2f65a9774d1c0534d7ad15ac32730503a0abd5e835ea81fff4f0657c",
+  "tracked_split_sha256": "023dcea0b011a3205408d74c6933ba9cdac6b0bea07b509315d2d1ff0d3cc44f",
+  "prepared_splits": {
+    "train": {
+      "images": 9430,
+      "annotations": 84589,
+      "annotation_sha256": "a127bb2fc90a24f992b6ae99620d3a42b3dccf21df09abf028a9ec327ed4f8e1"
+    },
+    "valid": {
+      "images": 1179,
+      "annotations": 10579,
+      "annotation_sha256": "ccad7bd5ac5cc2de0c9541f637f5cc14b73837828dcb8c28e7c472d0ab9c2568"
+    },
+    "test": {
+      "images": 1179,
+      "annotations": 10558,
+      "annotation_sha256": "07c5f7b4bdb742a214069511745f43da3346ef5de532e25ac121ae17c3cf6400"
+    }
+  },
+  "smoke_archive_bytes": 235151612,
+  "smoke_archive_sha256": "96c4be72eec1acf7e3805748e7d65babbc6470ccd2034d10ac3adb1c23ee877d"
+}

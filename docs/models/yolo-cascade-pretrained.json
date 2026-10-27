@@ -1,0 +1,43 @@
+{
+  "retrievedAt": "2026-10-26T15:05:41.850523+00:00",
+  "trainingStarted": false,
+  "assets": {
+    "yolov8s.pt": {
+      "url": "https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov8s.pt",
+      "license": "AGPL-3.0",
+      "source": "https://docs.ultralytics.com/models/yolov8/",
+      "file": "yolov8s.pt",
+      "bytes": 22588772,
+      "sha256": "1f47a78bf100391c2a140b7ac73a1caae18c32779be7d310658112f7ac9aa78a",
+      "origin": "official HTTPS release; SHA256 frozen from retrieved bytes"
+    },
+    "yolo26s.pt": {
+      "url": "https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt",
+      "license": "AGPL-3.0",
+      "source": "https://docs.ultralytics.com/models/yolo26/",
+      "file": "yolo26s.pt",
+      "bytes": 20422725,
+      "sha256": "646f8bc3fe0a656803d95c294f7852321748cb29d13466a1af8862e2db384a1b",
+      "origin": "official HTTPS release; SHA256 frozen from retrieved bytes"
+    },
+    "yolo26m.pt": {
+      "url": "https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m.pt",
+      "license": "AGPL-3.0",
+      "source": "https://docs.ultralytics.com/models/yolo26/",
+      "file": "yolo26m.pt",
+      "bytes": 44255705,
+      "sha256": "401cea9ab23ad19246ff7744859816bc599f350e93c9dd30367b6f0a0745d0b7",
+      "origin": "official HTTPS release; SHA256 frozen from retrieved bytes"
+    },
+    "efficientnet_v2_s-dd5fe13b.pth": {
+      "url": "https://download.pytorch.org/models/efficientnet_v2_s-dd5fe13b.pth",
+      "license": "Torchvision BSD-3-Clause; ImageNet pretrained weights terms apply",
+      "source": "https://docs.pytorch.org/vision/0.23/models/generated/torchvision.models.efficientnet_v2_s.html",
+      "expectedSha256Prefix": "dd5fe13b",
+      "file": "efficientnet_v2_s-dd5fe13b.pth",
+      "bytes": 86721253,
+      "sha256": "dd5fe13b1d60ec15317ccc8ca158186e134d3366c3dde9cb9a4e301f2dc66c74",
+      "origin": "official HTTPS release; SHA256 frozen from retrieved bytes"
+    }
+  }
+}
