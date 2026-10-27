@@ -16,8 +16,24 @@ function upload(headers: Record<string, string> = {}): Request {
     headers: { 'Content-Type': 'multipart/form-data; boundary=fixture', ...headers } });
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 describe('upload gateway', () => {
+  it.each([{ readyAt: 75_000, status: 200 }, { readyAt: 100_000, status: 504 }])(
+    'waits for a slow cold start but bounds the request: $readyAt ms', async ({ readyAt, status }) => {
+      vi.useFakeTimers();
+      const fetch = vi.fn((_url: URL, init: RequestInit) => new Promise<Response>((resolve, reject) => {
+        const timer = setTimeout(() => resolve(Response.json({ tiles: [] })), readyAt);
+        init.signal?.addEventListener('abort', () => {
+          clearTimeout(timer);
+          reject(new DOMException('Aborted', 'AbortError'));
+        }, { once: true });
+      }));
+      vi.stubGlobal('fetch', fetch);
+      const pending = recognize(upload(), environment());
+      await vi.advanceTimersByTimeAsync(91_000);
+      expect((await pending).status).toBe(status);
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
   it('opts its asset responses out of analytics injection while preserving strict script sources', async () => {
     const env = environment({ ASSETS: { fetch: async () => new Response('<!doctype html><title>麻将</title>',
       { headers: { 'Content-Type': 'text/html' } }) } });

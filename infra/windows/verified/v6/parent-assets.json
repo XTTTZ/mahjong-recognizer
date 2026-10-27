@@ -1,0 +1,34 @@
+{
+  "assets": [
+    {
+      "path": "D:/mahjong/runs/v5-breadth-12h-20261026-tile-detector-v8-960/train/weights/best.pt",
+      "sha256": "3178358f029016cb5a1bb8ca6189fd0203a1fe206e6580148d348c821a480c50"
+    },
+    {
+      "path": "D:/mahjong/runs/v5-breadth-12h-20261026-tile-detector-v8-960/run.json",
+      "sha256": "66afc03bc756766eebe3b4583a28a6af7cfe8bf37f64dcb5797dc1113d3c4f1c"
+    },
+    {
+      "path": "D:/mahjong/runs/v5-breadth-12h-20261026-tile-detector-v26-960/train/weights/last.pt",
+      "sha256": "92f4091baa4dea3af611ee8b1e9211b49a58d72fdd8732cddff0e2344cc12afb"
+    },
+    {
+      "path": "D:/mahjong/runs/v5-breadth-12h-20261026-tile-detector-v26-960/run.json",
+      "sha256": "c663ea5e7f551614157b2c776747ca9ab7883e91ff38d9d78876216d237327a7"
+    },
+    {
+      "path": "D:/mahjong/runs/v5-breadth-12h-20261026-efficientnetv2-s-320/last.pt",
+      "sha256": "e654e90dedc580cdc56b80dcb7d2cecebf22e10880661cbb18e3178590071b63"
+    },
+    {
+      "path": "D:/mahjong/runs/v5-breadth-12h-20261026-efficientnetv2-s-320/run.json",
+      "sha256": "431814825ec1864fa8685896ac4918c45c19e78f31a1e0346432b866c0a3c7dc"
+    },
+    {
+      "path": "D:/mahjong/runs/v5-breadth-12h-20261026-efficientnetv2-s-320/status.json",
+      "sha256": "edf610205d5ed05b787df151f436e61630f0ede5901c6903f91b6fe356c1cfea"
+    }
+  ],
+  "evidence": "Hashes bound by v5 complete validation/release reports; original Windows files must pass fresh checks before v6 submission. No weights are included in the code bundle.",
+  "windowsV6Rechecked": false
+}

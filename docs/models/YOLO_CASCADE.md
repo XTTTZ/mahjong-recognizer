@@ -1,6 +1,6 @@
 # YOLO 与定位后分类实验
 
-2026-10-26准备；没有启动这些模型的训练。YOLO、classifier的CPU数据合同和后处理已测试；GPU收敛、显存、精度、Linux导出和耗时仍需要提交后的真实实验确认。
+最初方案记录于2026-10-26；V5训练及完整验证已结束。2026-10-28已上线YOLO26s定位→EfficientNetV2-S的当前最佳候选，完整选型与一次封存结果见[选择说明](SELECTION_20261027.md)。本页保留基础路线的可复现命令；下一轮只准备未启动，见[V6方案](V6_REFINEMENT.md)。
 
 ## 比较什么
 
@@ -14,7 +14,7 @@ RF-DETR与RT-DETR仍是独立候选。模型更大、新版本或二阶段本身
 
 ## 数据与评价纪律
 
-全部新路线使用冻结的v4 42类牌面映射。牌背作为背景；同原图的预增强与相近相机burst不会跨train/valid。这里的2629张训练图含同源预增强，不能按2629次独立采集理解。原test保持封存。
+全部新路线使用冻结的v4 42类牌面映射。牌背作为背景；同原图的预增强与相近相机burst不会跨train/valid。这里的2629张训练图含同源预增强，不能按2629次独立采集理解。训练和阈值选择仅使用train/valid。当前test已在2026-10-27验证锁定后一次打开；后续实验不按其结果调参，也不反复复用它报告独立泛化。
 
 `prepare_yolo`把train/valid转为YOLO标签，复用原图字节，不重新编码；generic版本只把所有牌面合为类别0。每份衍生数据保存源COCO/图片树、标签、图片和准备代码的哈希。训练前重新校验图片、标签与映射。
 
@@ -26,13 +26,13 @@ RF-DETR与RT-DETR仍是独立候选。模型更大、新版本或二阶段本身
 
 YOLO使用本地官方COCO预训练权重，固定Ultralytics8.4.189。AdamW、较小学习率、cosine、warmup3、batch按12GB显存保守设置，按实际batch积累到nominal32。为了保留麻将字形，不翻转、不mosaic/mixup、不随机裁切；photo版本只做轻量HSV变化。generic定位器与42类检测器使用独立头、独立run与checkpoint，不混用恢复。
 
-EfficientNetV2-S使用官方ImageNet预训练，从本地加载并替换42类头；完整裁图保持比例，使用ImageNet归一化；仅train有轻量亮度/对比/颜色/模糊/JPEG增强和小幅框抖动，抵抗推理框与真值框差距。classifier使用上限4倍的逆平方根类别加权loss、label smoothing0.02和AdamW/cosine。320像素建议先用batch16、gradient accumulation2。没有执行GPU试训，因此这是待测配置，OOM由队列记录后继续后面的独立实验。
+EfficientNetV2-S使用官方ImageNet预训练，从本地加载并替换42类头；完整裁图保持比例，使用ImageNet归一化；仅train有轻量亮度/对比/颜色/模糊/JPEG增强和小幅框抖动，抵抗推理框与真值框差距。classifier使用上限4倍的逆平方根类别加权loss、label smoothing0.02和AdamW/cosine。320像素建议先用batch16、gradient accumulation2。该配置已在V5运行；OOM仍由队列记录后继续后面的独立实验，固定batch不静默减半。
 
 YOLO与classifier均只保留best/last（YOLO内置最终strip optimizer后会重写receipt）；失败run不可复用为另一个实验。固定8.4.189版本的首epoch OOM自动减半被显式关闭：显存不足使本实验失败，队列再继续其他候选；不会把requested batch8悄悄记成实际batch4。成功run另保存actual batch/nominal accumulate/最终trainer args。每个checkpoint的receipt绑定字节哈希、类别与数据/代码/配置签名。依赖失败时，cascade eval跳过；队列继续后续无依赖候选。不会把一个阶段失败误报为完整流水线成功。
 
 ## 准备与运行命令
 
-在工程根目录，以Windows独立`mahjong-yolo`环境执行。以下命令是手工运行单项的例子；串行suite另由`infra/windows/prepare_experiment_suite.py`生成，本页命令没有被执行训练。
+在工程根目录，以Windows独立`mahjong-yolo`环境执行。以下命令是手工运行单项的例子；串行suite另由`infra/windows/prepare_experiment_suite.py`生成，本页的新输出目录是复现示例，不会随文档或预检自动执行训练。
 
 ```powershell
 python -m ml.data.prepare_yolo --dataset D:/mahjong/data/prepared-v4-main --out D:/mahjong/data/prepared-v4-main-yolo42
@@ -68,7 +68,7 @@ python -m ml.train.freeze_yolo --run DETECTOR_RUN/run.json --checkpoint DETECTOR
 python -m ml.train.freeze_yolo --run GENERIC_RUN/run.json --checkpoint GENERIC_RUN/train/weights/best.pt --classifier-run CLASSIFIER_RUN/run.json --classifier CLASSIFIER_RUN/best.pt --report CASCADE_EVAL_RUN/validation/report.json --version cascade-v4-candidate --out D:/mahjong/packages/cascade-v4-candidate
 ```
 
-初次导出保留PyTorch native，先保证与训练结果一致。正式候选通过后再比较FP16 ONNX/TensorRT的预测逐图一致性、整手准确率、冷启动和成本；不预先使用INT8压低纹理精度。YOLO/cascade adapter及manifest校验已经准备，当前网站继续使用RF候选，未切换YOLO。
+初次导出保留PyTorch native，先保证与训练结果一致。正式候选通过后再比较FP16 ONNX/TensorRT的预测逐图一致性、整手准确率、冷启动和成本；不预先使用INT8压低纹理精度。当前网站已切换为经过GPU复核的两阶段候选，Linux Modal实际接口与手机网页链路均通过；尚未采用ONNX/TensorRT或INT8。
 
 ## 官方资料与许可
 
@@ -79,7 +79,7 @@ python -m ml.train.freeze_yolo --run GENERIC_RUN/run.json --checkpoint GENERIC_R
 - [官方v8.4.0预训练资产](https://github.com/ultralytics/assets/releases/tag/v8.4.0)
 - [Torchvision0.23 EfficientNetV2-S](https://docs.pytorch.org/vision/0.23/models/generated/torchvision.models.efficientnet_v2_s.html)
 
-Ultralytics包与预训练模型为AGPL-3.0，当前仅加入实验准备。公网产品部署前需按官方许可条款处理开源或商业许可，不能把私有仓库视为天然满足许可。Torchvision代码BSD-3-Clause，预训练权重另需遵循其训练数据相关条款。没有购买任何许可或调用付费训练。
+Ultralytics包与预训练模型为AGPL-3.0。已根据用户授权按[官方许可](https://www.ultralytics.com/license)公开[完整独立应用源码](https://github.com/XTTTZ/mahjong-recognizer)及[选中权重](https://github.com/XTTTZ/mahjong-recognizer/releases/tag/model-v4-20261027)，使用免费开源路线；原私有仓库保持私有。Torchvision代码BSD-3-Clause，预训练权重另需遵循其训练数据相关条款。没有购买任何许可或调用付费训练。
 
 四份官方预训练已完整下载，来源、字节长度和SHA256冻结在[yolo-cascade-pretrained.json](./yolo-cascade-pretrained.json)。`infra/windows/cache_yolo_weights.py`可重新缓存并校验Torchvision公开哈希前缀。模型加载与训练完全使用本地路径，不依赖训练中再下载预训练模型。
 

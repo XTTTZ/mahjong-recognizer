@@ -151,6 +151,27 @@ test('rate limit is actionable and does not automatically send another paid requ
   await expect(page.getByRole('button', { name: '开始识别' })).toBeEnabled();
 });
 
+test('a slow GPU cold start can finish after the former client timeout without a duplicate request', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/');
+  await upload(page);
+  let release: () => void = () => {};
+  let calls = 0;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/recognize', async route => {
+    calls++;
+    await gate;
+    await route.fulfill({ json: response });
+  });
+  await page.getByRole('button', { name: '开始识别' }).click();
+  await page.clock.fastForward(75_000);
+  await expect(page.getByText('正在仔细看牌…')).toBeVisible();
+  await expect(page.getByText('服务正在启动，可能需要多等一会儿')).toBeVisible();
+  release();
+  await expect(page.getByRole('heading', { name: '14 张麻将' })).toBeVisible();
+  expect(calls).toBe(1);
+});
+
 test('unsupported files and offline states have clear recovery', async ({ page, context }) => {
   await page.goto('/');
   await page.getByLabel('上传麻将照片', { exact: true }).setInputFiles({ name: 'not-an-image.txt', mimeType: 'text/plain', buffer: Buffer.from('no image') });

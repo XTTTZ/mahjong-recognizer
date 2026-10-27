@@ -1,0 +1,930 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-27T13:58:49.647667+00:00",
+  "split": "train_only",
+  "trainAnnotationSha256": "0e728127aea1d9d3f6df589dc645b313710f88dd5ce45a872b7eaf8655d3099d",
+  "trainImageTreeSha256": "fd59e80d57b97cc87f5d1036fc5f2bd225791addcf2381c01b2abac163096ee2",
+  "contactSheetsVisuallyReviewed": true,
+  "reviewMethod": "All72 proposed crop images inspected on6 contact sheets; geometry exclusion is only a candidate condition. Reject visible or ambiguous tile edges even if a back/side could technically be background.",
+  "contactSheets": [
+    {
+      "path": "artifacts/data/v6-background-proposals/contact-00.jpg",
+      "sha256": "02a257456650578c5339a0417c2c307eee37c8c27e1ffc2c6e5c2863bd0b5bfc"
+    },
+    {
+      "path": "artifacts/data/v6-background-proposals/contact-01.jpg",
+      "sha256": "dc3adc06760d8fe6a73d462de81c51eda402d6f8281c4d7ee9b81baac39ce541"
+    },
+    {
+      "path": "artifacts/data/v6-background-proposals/contact-02.jpg",
+      "sha256": "124a4db94d1a87dc10b222610cb3b2c1f9504cb6250a427b67527783c17e806c"
+    },
+    {
+      "path": "artifacts/data/v6-background-proposals/contact-03.jpg",
+      "sha256": "2d268d501111aba0e0a4c2d15f9e7b61e49f8ac067942a7610b13424a24523c6"
+    },
+    {
+      "path": "artifacts/data/v6-background-proposals/contact-04.jpg",
+      "sha256": "593bfc030af1cdd13fb03082884630d44e7835219a3df1356d3ab43ab5d7210b"
+    },
+    {
+      "path": "artifacts/data/v6-background-proposals/contact-05.jpg",
+      "sha256": "c5145c0a93188ed0d913620a850d43907a4ef53d412457293e33f9bca777a9f9"
+    }
+  ],
+  "accepted": [
+    {
+      "id": "bg-000",
+      "sourceFile": "0bc64824d93f2fe1841e.jpg",
+      "sourceId": "train/61_jpg.rf.0a33f7c982ab8201d6d47ccbdf4ebcd3.jpg",
+      "sourceSha256": "83ed3abf4e85c5d9f3a18e34cf947505a7489e74b082935a293f1f1c6e44125d",
+      "sourceGroup": "0bc64824d93f2fe1841e",
+      "cropXYXY": [
+        1298,
+        2621,
+        2356,
+        4032
+      ],
+      "texture": 1583.4692352376878
+    },
+    {
+      "id": "bg-001",
+      "sourceFile": "0bc64824d93f2fe1841e.jpg",
+      "sourceId": "train/61_jpg.rf.0a33f7c982ab8201d6d47ccbdf4ebcd3.jpg",
+      "sourceSha256": "83ed3abf4e85c5d9f3a18e34cf947505a7489e74b082935a293f1f1c6e44125d",
+      "sourceGroup": "0bc64824d93f2fe1841e",
+      "cropXYXY": [
+        0,
+        2621,
+        1058,
+        4032
+      ],
+      "texture": 1213.4712323211133
+    },
+    {
+      "id": "bg-002",
+      "sourceFile": "11a006ce869b2246b740.jpg",
+      "sourceId": "train/55_jpg.rf.eb271114324a0766095d15a9d055209f.jpg",
+      "sourceSha256": "700092651c629b020e39bb058571646fa156dde1a4293ded7074c6e3d265bc56",
+      "sourceGroup": "11a006ce869b2246b740",
+      "cropXYXY": [
+        0,
+        2218,
+        1360,
+        4032
+      ],
+      "texture": 2107.6407179683447
+    },
+    {
+      "id": "bg-003",
+      "sourceFile": "11a006ce869b2246b740.jpg",
+      "sourceId": "train/55_jpg.rf.eb271114324a0766095d15a9d055209f.jpg",
+      "sourceSha256": "700092651c629b020e39bb058571646fa156dde1a4293ded7074c6e3d265bc56",
+      "sourceGroup": "11a006ce869b2246b740",
+      "cropXYXY": [
+        1966,
+        0,
+        3024,
+        1411
+      ],
+      "texture": 1189.229404952377
+    },
+    {
+      "id": "bg-004",
+      "sourceFile": "ee602a9704958eae2ff9.jpg",
+      "sourceId": "test/84_300_jpg.rf.7d5da118150a5e790014e176a3b5c16e.jpg",
+      "sourceSha256": "ddbb18df357c75ce63b9475733ae4e1d46c68b4d434b57b0478a5fcb185644f2",
+      "sourceGroup": "1562b59532e79415ad8f",
+      "cropXYXY": [
+        1966,
+        2621,
+        3024,
+        4032
+      ],
+      "texture": 580.301616307348
+    },
+    {
+      "id": "bg-006",
+      "sourceFile": "054720ef2bb767bb00de.jpg",
+      "sourceId": "train/9_000_jpg.rf.4392e1f6282f7c549d3c7d2e679b4074.jpg",
+      "sourceSha256": "e01cd72a7fb0daca7b312f044626df79805381290bf375d3e63ec754e0dc966f",
+      "sourceGroup": "19284ac125fac1590490",
+      "cropXYXY": [
+        0,
+        1730,
+        1058,
+        3141
+      ],
+      "texture": 2385.5395715236664
+    },
+    {
+      "id": "bg-007",
+      "sourceFile": "054720ef2bb767bb00de.jpg",
+      "sourceId": "train/9_000_jpg.rf.4392e1f6282f7c549d3c7d2e679b4074.jpg",
+      "sourceSha256": "e01cd72a7fb0daca7b312f044626df79805381290bf375d3e63ec754e0dc966f",
+      "sourceGroup": "19284ac125fac1590490",
+      "cropXYXY": [
+        0,
+        0,
+        1058,
+        1411
+      ],
+      "texture": 937.9393449872732
+    },
+    {
+      "id": "bg-009",
+      "sourceFile": "1dfdc88a7bf48eb0ba6c.jpg",
+      "sourceId": "train/66_jpg.rf.d0f703bce05ee413fb572d961eba7f12.jpg",
+      "sourceSha256": "f8894e756dd83c7bc2800cb62325f87548d9ad50d1ce3a6fd0f01d5bc3f5fdcc",
+      "sourceGroup": "1dfdc88a7bf48eb0ba6c",
+      "cropXYXY": [
+        1966,
+        0,
+        3024,
+        1411
+      ],
+      "texture": 1099.7727793306112
+    },
+    {
+      "id": "bg-010",
+      "sourceFile": "61d3a0143c82a08c5738.jpg",
+      "sourceId": "valid/13_000_jpg.rf.6eca819e005e0fcf04b434a8f4e405bb.jpg",
+      "sourceSha256": "922a835b412437906931181415fec3ac40e279a8fc871195b75d6d648966c120",
+      "sourceGroup": "2486dfb278feec71b1d2",
+      "cropXYXY": [
+        0,
+        1730,
+        1058,
+        3141
+      ],
+      "texture": 2391.6219661086798
+    },
+    {
+      "id": "bg-011",
+      "sourceFile": "61d3a0143c82a08c5738.jpg",
+      "sourceId": "valid/13_000_jpg.rf.6eca819e005e0fcf04b434a8f4e405bb.jpg",
+      "sourceSha256": "922a835b412437906931181415fec3ac40e279a8fc871195b75d6d648966c120",
+      "sourceGroup": "2486dfb278feec71b1d2",
+      "cropXYXY": [
+        1966,
+        0,
+        3024,
+        1411
+      ],
+      "texture": 865.6910278461874
+    },
+    {
+      "id": "bg-012",
+      "sourceFile": "a40f6553536862b536b8.jpg",
+      "sourceId": "train/3_000_jpg.rf.5da3364207b35397811dca6385e5846e.jpg",
+      "sourceSha256": "2d119dc282519335981cf2bb020ba0153cf2f2a4b6d87118284e6c5d2b688b09",
+      "sourceGroup": "306a3312178bd9c4d25f",
+      "cropXYXY": [
+        1966,
+        0,
+        3024,
+        1411
+      ],
+      "texture": 922.4861500822008
+    },
+    {
+      "id": "bg-013",
+      "sourceFile": "3349163806bd5ac4ee4d.jpg",
+      "sourceId": "train/60_jpg.rf.43f5309819f3dcc8eb5704d00d8fd105.jpg",
+      "sourceSha256": "50db08d2596ac420206ed5c5e9ab0c7959c888fb8ac03965d00af5a78119fa50",
+      "sourceGroup": "3349163806bd5ac4ee4d",
+      "cropXYXY": [
+        1298,
+        0,
+        2356,
+        1411
+      ],
+      "texture": 2185.0712110958993
+    },
+    {
+      "id": "bg-014",
+      "sourceFile": "3349163806bd5ac4ee4d.jpg",
+      "sourceId": "train/60_jpg.rf.43f5309819f3dcc8eb5704d00d8fd105.jpg",
+      "sourceSha256": "50db08d2596ac420206ed5c5e9ab0c7959c888fb8ac03965d00af5a78119fa50",
+      "sourceGroup": "3349163806bd5ac4ee4d",
+      "cropXYXY": [
+        1966,
+        2621,
+        3024,
+        4032
+      ],
+      "texture": 1816.1279828511178
+    },
+    {
+      "id": "bg-016",
+      "sourceFile": "350562859d26627a9504.jpg",
+      "sourceId": "train/27_jpg.rf.8233e4b19b4ed2ac276fabf17b8b7902.jpg",
+      "sourceSha256": "c94b6493e67fc438a30f7227d69eb59c9531ebe6702c04575229098d2a29864e",
+      "sourceGroup": "350562859d26627a9504",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 2678.709952738136
+    },
+    {
+      "id": "bg-017",
+      "sourceFile": "40b1eb0fb91e5814da96.jpg",
+      "sourceId": "train/32_jpg.rf.ce79ffda254e23b506ed9a5a193c9325.jpg",
+      "sourceSha256": "e97c6dbf263b37dc4c7c9663d00c1f011913657f05f3912e7f05db5cd1aa5d7b",
+      "sourceGroup": "40b1eb0fb91e5814da96",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 2850.478517111391
+    },
+    {
+      "id": "bg-019",
+      "sourceFile": "4f2875b7c839fa068e82.jpg",
+      "sourceId": "valid/75_jpg.rf.a1c28fedfe64c2899490d0a02129192d.jpg",
+      "sourceSha256": "fe064fe7f488e3f4f816d8c2e10bf20b5e7c02f356726071898694bb7a616ffa",
+      "sourceGroup": "4f2875b7c839fa068e82",
+      "cropXYXY": [
+        0,
+        865,
+        1058,
+        2276
+      ],
+      "texture": 2592.6385686397552
+    },
+    {
+      "id": "bg-020",
+      "sourceFile": "4f2875b7c839fa068e82.jpg",
+      "sourceId": "valid/75_jpg.rf.a1c28fedfe64c2899490d0a02129192d.jpg",
+      "sourceSha256": "fe064fe7f488e3f4f816d8c2e10bf20b5e7c02f356726071898694bb7a616ffa",
+      "sourceGroup": "4f2875b7c839fa068e82",
+      "cropXYXY": [
+        1966,
+        0,
+        3024,
+        1411
+      ],
+      "texture": 2318.8216781020164
+    },
+    {
+      "id": "bg-021",
+      "sourceFile": "9b5665e2b71f8f9e50b7.jpg",
+      "sourceId": "train/6_000_jpg.rf.1541291161eb27e421652d593fde3d88.jpg",
+      "sourceSha256": "bcdd775379cab99517b93a1c0a2d0323a4472fd3c353e09f42e6f493bbbb3d47",
+      "sourceGroup": "55fe320e85bb7fe8f43e",
+      "cropXYXY": [
+        2621,
+        0,
+        4032,
+        1058
+      ],
+      "texture": 2789.881749972701
+    },
+    {
+      "id": "bg-022",
+      "sourceFile": "9b5665e2b71f8f9e50b7.jpg",
+      "sourceId": "train/6_000_jpg.rf.1541291161eb27e421652d593fde3d88.jpg",
+      "sourceSha256": "bcdd775379cab99517b93a1c0a2d0323a4472fd3c353e09f42e6f493bbbb3d47",
+      "sourceGroup": "55fe320e85bb7fe8f43e",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 1660.2276983261108
+    },
+    {
+      "id": "bg-023",
+      "sourceFile": "69dce70fd4628c4b020b.jpg",
+      "sourceId": "train/57_jpg.rf.9fc6aea562fa288256d708b1b80381c0.jpg",
+      "sourceSha256": "d7036e43de7d745a5946e9729612073b85129065ab9c95d5cd5b80b19ddc0d8a",
+      "sourceGroup": "69dce70fd4628c4b020b",
+      "cropXYXY": [
+        0,
+        2621,
+        1058,
+        4032
+      ],
+      "texture": 635.7763733528554
+    },
+    {
+      "id": "bg-024",
+      "sourceFile": "7a6b265ae49fc8adfb99.jpg",
+      "sourceId": "valid/83_jpg.rf.830187b81bc17fc5d63526c0609d6fed.jpg",
+      "sourceSha256": "f52a9f12cf7f0d8246be1b8c8ac84a08970b55e575a18e6c55850ba4080d85c1",
+      "sourceGroup": "7a6b265ae49fc8adfb99",
+      "cropXYXY": [
+        1966,
+        0,
+        3024,
+        1411
+      ],
+      "texture": 1962.13990329206
+    },
+    {
+      "id": "bg-025",
+      "sourceFile": "7a6b265ae49fc8adfb99.jpg",
+      "sourceId": "valid/83_jpg.rf.830187b81bc17fc5d63526c0609d6fed.jpg",
+      "sourceSha256": "f52a9f12cf7f0d8246be1b8c8ac84a08970b55e575a18e6c55850ba4080d85c1",
+      "sourceGroup": "7a6b265ae49fc8adfb99",
+      "cropXYXY": [
+        649,
+        0,
+        1707,
+        1411
+      ],
+      "texture": 829.137737300247
+    },
+    {
+      "id": "bg-026",
+      "sourceFile": "7e98758ac25496bad453.jpg",
+      "sourceId": "train/42_jpg.rf.ae13ad1ad573caa612a3dde3dab23357.jpg",
+      "sourceSha256": "1c675e109ded57ad7a39d0df52acdbf44010335060d3fdf0b061b1bc059a79dc",
+      "sourceGroup": "7e98758ac25496bad453",
+      "cropXYXY": [
+        1730,
+        1966,
+        3141,
+        3024
+      ],
+      "texture": 2208.109424557537
+    },
+    {
+      "id": "bg-028",
+      "sourceFile": "83698f2fb1e67cd698a1.jpg",
+      "sourceId": "train/48_jpg.rf.92c3045df4f13a14b3df708bb026311d.jpg",
+      "sourceSha256": "667e49e02fa29163b4ef27077e2f4135c296e747a8c7d792fdbaf493a7222f6a",
+      "sourceGroup": "83698f2fb1e67cd698a1",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 1946.3853244744241
+    },
+    {
+      "id": "bg-029",
+      "sourceFile": "83698f2fb1e67cd698a1.jpg",
+      "sourceId": "train/48_jpg.rf.92c3045df4f13a14b3df708bb026311d.jpg",
+      "sourceSha256": "667e49e02fa29163b4ef27077e2f4135c296e747a8c7d792fdbaf493a7222f6a",
+      "sourceGroup": "83698f2fb1e67cd698a1",
+      "cropXYXY": [
+        1730,
+        1966,
+        3141,
+        3024
+      ],
+      "texture": 1723.922036588192
+    },
+    {
+      "id": "bg-030",
+      "sourceFile": "fe3bc20aeedb768bfddf.jpg",
+      "sourceId": "train/111_000_jpg.rf.b3544cd62e93b4f65d1bb16a508527ca.jpg",
+      "sourceSha256": "f0060cb3862a570bb441cb60e220602feb4a50be0172bb6aa37270bf8a0bb601",
+      "sourceGroup": "88011ef36f83e556d0fc",
+      "cropXYXY": [
+        2621,
+        0,
+        4032,
+        1058
+      ],
+      "texture": 3227.3458279035985
+    },
+    {
+      "id": "bg-031",
+      "sourceFile": "fe3bc20aeedb768bfddf.jpg",
+      "sourceId": "train/111_000_jpg.rf.b3544cd62e93b4f65d1bb16a508527ca.jpg",
+      "sourceSha256": "f0060cb3862a570bb441cb60e220602feb4a50be0172bb6aa37270bf8a0bb601",
+      "sourceGroup": "88011ef36f83e556d0fc",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 2030.8340899795294
+    },
+    {
+      "id": "bg-033",
+      "sourceFile": "10d43f546ca3455b5c1b.jpg",
+      "sourceId": "train/113_000_jpg.rf.882110b39bb3bf033a66ca6c80f7222c.jpg",
+      "sourceSha256": "144ff5f5e01a064d5ef6ee089c2293655fc31e5073dc11d07a431f87eeb4e312",
+      "sourceGroup": "886f55c9f8123451de86",
+      "cropXYXY": [
+        865,
+        1966,
+        2276,
+        3024
+      ],
+      "texture": 2196.990066036582
+    },
+    {
+      "id": "bg-035",
+      "sourceFile": "952ecf0e3a6e6d046660.jpg",
+      "sourceId": "train/44_jpg.rf.dada204b55e0d68390aa87f3a82959ae.jpg",
+      "sourceSha256": "f66c0531939ee3683083bc2ed774a30ea9b2de2279e73fbf55b87bb66ea541c7",
+      "sourceGroup": "952ecf0e3a6e6d046660",
+      "cropXYXY": [
+        1464,
+        1664,
+        3278,
+        3024
+      ],
+      "texture": 630.5934530459344
+    },
+    {
+      "id": "bg-036",
+      "sourceFile": "96fa5da9e0f4c3e043dd.jpg",
+      "sourceId": "train/80_jpg.rf.6e02fe2c0c287e679afafeeec349c26a.jpg",
+      "sourceSha256": "d88b350e93ca3981160d48e88d76c41f96dab3e7ee9d890ae0bd17592b3be9f2",
+      "sourceGroup": "96fa5da9e0f4c3e043dd",
+      "cropXYXY": [
+        0,
+        0,
+        1058,
+        1411
+      ],
+      "texture": 445.95953273773193
+    },
+    {
+      "id": "bg-037",
+      "sourceFile": "972de1a01901e752c8ef.jpg",
+      "sourceId": "valid/38_jpg.rf.d331e41f31aa355328af57e62316968a.jpg",
+      "sourceSha256": "30adef31a39ef9f3d739d87b46b5dd00455444b3a26f450e5d72ff7e5cf49582",
+      "sourceGroup": "972de1a01901e752c8ef",
+      "cropXYXY": [
+        0,
+        1966,
+        1411,
+        3024
+      ],
+      "texture": 1957.1192986816168
+    },
+    {
+      "id": "bg-039",
+      "sourceFile": "e053ebb4c378e1291683.jpg",
+      "sourceId": "train/26_090_jpg.rf.83f4890eb4f55393ab432535cb6ee030.jpg",
+      "sourceSha256": "98611c8b5e82c99f5821442240f3b2c0c84418ebf36e53cd44052d4e2ec551bc",
+      "sourceGroup": "97456d3c2f0e017e10e4",
+      "cropXYXY": [
+        2218,
+        0,
+        4032,
+        1360
+      ],
+      "texture": 2708.6518759578466
+    },
+    {
+      "id": "bg-040",
+      "sourceFile": "e053ebb4c378e1291683.jpg",
+      "sourceId": "train/26_090_jpg.rf.83f4890eb4f55393ab432535cb6ee030.jpg",
+      "sourceSha256": "98611c8b5e82c99f5821442240f3b2c0c84418ebf36e53cd44052d4e2ec551bc",
+      "sourceGroup": "97456d3c2f0e017e10e4",
+      "cropXYXY": [
+        2218,
+        1664,
+        4032,
+        3024
+      ],
+      "texture": 2072.5718089602888
+    },
+    {
+      "id": "bg-041",
+      "sourceFile": "fa8be3d7441390f5f39a.jpg",
+      "sourceId": "train/85_000_jpg.rf.b32dcb2f69340e88d24bcbb4c102c298.jpg",
+      "sourceSha256": "ad86d57b170802d545c8673be3eda6f24b6d37444fb9643c029c2a7368cfd6f2",
+      "sourceGroup": "9793808a411dcb3345a6",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 3287.4729360602796
+    },
+    {
+      "id": "bg-042",
+      "sourceFile": "fa8be3d7441390f5f39a.jpg",
+      "sourceId": "train/85_000_jpg.rf.b32dcb2f69340e88d24bcbb4c102c298.jpg",
+      "sourceSha256": "ad86d57b170802d545c8673be3eda6f24b6d37444fb9643c029c2a7368cfd6f2",
+      "sourceGroup": "9793808a411dcb3345a6",
+      "cropXYXY": [
+        1730,
+        1966,
+        3141,
+        3024
+      ],
+      "texture": 2457.4177864156663
+    },
+    {
+      "id": "bg-044",
+      "sourceFile": "9c36db9282a7cf9a8987.jpg",
+      "sourceId": "train/29_jpg.rf.ee8ec4a24c1cc5ef40f558ea7827b2a3.jpg",
+      "sourceSha256": "9ff5021221b5f58ab8e4955f248f1a5506528951292d351772fc42c9eec621a9",
+      "sourceGroup": "9c36db9282a7cf9a8987",
+      "cropXYXY": [
+        2621,
+        1966,
+        4032,
+        3024
+      ],
+      "texture": 2774.1482765339315
+    },
+    {
+      "id": "bg-045",
+      "sourceFile": "9fced5b0257836e9fb5e.jpg",
+      "sourceId": "train/36_jpg.rf.0c5a80fbfb6a029abf1e1ff8d19de690.jpg",
+      "sourceSha256": "6172564b4087ecbeb652488998b15637a4443b7735923221ef261f022864bff7",
+      "sourceGroup": "9fced5b0257836e9fb5e",
+      "cropXYXY": [
+        0,
+        1966,
+        1411,
+        3024
+      ],
+      "texture": 1407.2682142108679
+    },
+    {
+      "id": "bg-046",
+      "sourceFile": "9fced5b0257836e9fb5e.jpg",
+      "sourceId": "train/36_jpg.rf.0c5a80fbfb6a029abf1e1ff8d19de690.jpg",
+      "sourceSha256": "6172564b4087ecbeb652488998b15637a4443b7735923221ef261f022864bff7",
+      "sourceGroup": "9fced5b0257836e9fb5e",
+      "cropXYXY": [
+        2621,
+        1966,
+        4032,
+        3024
+      ],
+      "texture": 830.6344440840185
+    },
+    {
+      "id": "bg-047",
+      "sourceFile": "a1efeefcd47f12cfe39f.jpg",
+      "sourceId": "train/45_jpg.rf.89df9e9cd3b13f4355d217e7e642d372.jpg",
+      "sourceSha256": "bb81424567341e940b5991414013807b84ae4e7297ae7c641cc08d8fa0fc50d3",
+      "sourceGroup": "a1efeefcd47f12cfe39f",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 1582.1541492305696
+    },
+    {
+      "id": "bg-048",
+      "sourceFile": "a1efeefcd47f12cfe39f.jpg",
+      "sourceId": "train/45_jpg.rf.89df9e9cd3b13f4355d217e7e642d372.jpg",
+      "sourceSha256": "bb81424567341e940b5991414013807b84ae4e7297ae7c641cc08d8fa0fc50d3",
+      "sourceGroup": "a1efeefcd47f12cfe39f",
+      "cropXYXY": [
+        2621,
+        0,
+        4032,
+        1058
+      ],
+      "texture": 1299.5866384468973
+    },
+    {
+      "id": "bg-050",
+      "sourceFile": "25b55b194c2fa9d7edd8.jpg",
+      "sourceId": "test/22_000_jpg.rf.c699d5036259e241137d92eb5af34c05.jpg",
+      "sourceSha256": "4e9b5c520e2f12ba318f764041ed3886b7253f7aa9b5d4b24f341f04e766ff23",
+      "sourceGroup": "a2591b3e3250d9edbcfd",
+      "cropXYXY": [
+        1966,
+        1730,
+        3024,
+        3141
+      ],
+      "texture": 278.3136667571962
+    },
+    {
+      "id": "bg-051",
+      "sourceFile": "b7a86e3aed60a6b6c70b.jpg",
+      "sourceId": "train/35_jpg.rf.015284b41aa699d14096e5865b873e5a.jpg",
+      "sourceSha256": "d05a29e39755461c9a0586828ac5e7370e16e8654a80e323897e7b39d43f13a2",
+      "sourceGroup": "b7a86e3aed60a6b6c70b",
+      "cropXYXY": [
+        0,
+        1966,
+        1411,
+        3024
+      ],
+      "texture": 2085.343820437789
+    },
+    {
+      "id": "bg-052",
+      "sourceFile": "bfb1405ff65fb56cbd37.jpg",
+      "sourceId": "test/43_jpg.rf.08c3279d8c87705ad29395e969d23937.jpg",
+      "sourceSha256": "4a1f2c56f44de57be5aad751a517568cd26610a620f1b26a8d24c6e52ecc3d46",
+      "sourceGroup": "bfb1405ff65fb56cbd37",
+      "cropXYXY": [
+        865,
+        1966,
+        2276,
+        3024
+      ],
+      "texture": 2265.900731589645
+    },
+    {
+      "id": "bg-053",
+      "sourceFile": "bfb1405ff65fb56cbd37.jpg",
+      "sourceId": "test/43_jpg.rf.08c3279d8c87705ad29395e969d23937.jpg",
+      "sourceSha256": "4a1f2c56f44de57be5aad751a517568cd26610a620f1b26a8d24c6e52ecc3d46",
+      "sourceGroup": "bfb1405ff65fb56cbd37",
+      "cropXYXY": [
+        2621,
+        1966,
+        4032,
+        3024
+      ],
+      "texture": 1202.2791116088629
+    },
+    {
+      "id": "bg-054",
+      "sourceFile": "c8161e9d398d0764e337.jpg",
+      "sourceId": "test/56_jpg.rf.bec1472754268a58a255c68b19ccd6bd.jpg",
+      "sourceSha256": "ef8aaae6625809aec9034691f15834faa0d553764a048adb51581e2e0a84948c",
+      "sourceGroup": "c8161e9d398d0764e337",
+      "cropXYXY": [
+        1298,
+        2621,
+        2356,
+        4032
+      ],
+      "texture": 1353.208814844489
+    },
+    {
+      "id": "bg-055",
+      "sourceFile": "c8161e9d398d0764e337.jpg",
+      "sourceId": "test/56_jpg.rf.bec1472754268a58a255c68b19ccd6bd.jpg",
+      "sourceSha256": "ef8aaae6625809aec9034691f15834faa0d553764a048adb51581e2e0a84948c",
+      "sourceGroup": "c8161e9d398d0764e337",
+      "cropXYXY": [
+        649,
+        0,
+        1707,
+        1411
+      ],
+      "texture": 643.0106241554022
+    },
+    {
+      "id": "bg-056",
+      "sourceFile": "6a845861f94a56a062d9.jpg",
+      "sourceId": "train/101_000_jpg.rf.495eb9800b3afc10adf947e9d2222a4f.jpg",
+      "sourceSha256": "05b2b1dd68595a282f27305fa74e65b3a1059f811fb1e4ffed6068aec3f29f4a",
+      "sourceGroup": "ca94797872f2b5bcb43d",
+      "cropXYXY": [
+        2621,
+        0,
+        4032,
+        1058
+      ],
+      "texture": 5541.060752894729
+    },
+    {
+      "id": "bg-057",
+      "sourceFile": "6a845861f94a56a062d9.jpg",
+      "sourceId": "train/101_000_jpg.rf.495eb9800b3afc10adf947e9d2222a4f.jpg",
+      "sourceSha256": "05b2b1dd68595a282f27305fa74e65b3a1059f811fb1e4ffed6068aec3f29f4a",
+      "sourceGroup": "ca94797872f2b5bcb43d",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 2761.408433135599
+    },
+    {
+      "id": "bg-058",
+      "sourceFile": "13e2ea5e2ab60201226d.jpg",
+      "sourceId": "train/8_000_jpg.rf.45eb9cc2da9b3cbeda4d36ec59f722eb.jpg",
+      "sourceSha256": "5933979f60679c7ba93f78bd483ab6b0832fb0964bfa05657724c0db82519a3e",
+      "sourceGroup": "d04d57ba84dac2fbe76a",
+      "cropXYXY": [
+        2621,
+        1966,
+        4032,
+        3024
+      ],
+      "texture": 3218.1661272905767
+    },
+    {
+      "id": "bg-059",
+      "sourceFile": "13e2ea5e2ab60201226d.jpg",
+      "sourceId": "train/8_000_jpg.rf.45eb9cc2da9b3cbeda4d36ec59f722eb.jpg",
+      "sourceSha256": "5933979f60679c7ba93f78bd483ab6b0832fb0964bfa05657724c0db82519a3e",
+      "sourceGroup": "d04d57ba84dac2fbe76a",
+      "cropXYXY": [
+        2621,
+        649,
+        4032,
+        1707
+      ],
+      "texture": 2117.9389827102423
+    },
+    {
+      "id": "bg-060",
+      "sourceFile": "fb007ce57833622d37f1.jpg",
+      "sourceId": "train/24_000_jpg.rf.e015427ae602105db42380a76eaae734.jpg",
+      "sourceSha256": "8bf6b734a18986497515c9c1c92945fbd2e6c52c12124a859e8398ebce6c3b00",
+      "sourceGroup": "d4cf6a5470199e6a28c0",
+      "cropXYXY": [
+        0,
+        1730,
+        1058,
+        3141
+      ],
+      "texture": 4084.4123418182135
+    },
+    {
+      "id": "bg-061",
+      "sourceFile": "fb007ce57833622d37f1.jpg",
+      "sourceId": "train/24_000_jpg.rf.e015427ae602105db42380a76eaae734.jpg",
+      "sourceSha256": "8bf6b734a18986497515c9c1c92945fbd2e6c52c12124a859e8398ebce6c3b00",
+      "sourceGroup": "d4cf6a5470199e6a28c0",
+      "cropXYXY": [
+        0,
+        0,
+        1058,
+        1411
+      ],
+      "texture": 877.3744657039642
+    },
+    {
+      "id": "bg-062",
+      "sourceFile": "d66653f38f7a9a827dc3.jpg",
+      "sourceId": "train/70_jpg.rf.2d330407a8fffdabdb8118fbefea3368.jpg",
+      "sourceSha256": "42576c83b110709317f975568e302969df4bd4cadf297c07410dbbfa0c8b4362",
+      "sourceGroup": "d66653f38f7a9a827dc3",
+      "cropXYXY": [
+        1966,
+        2621,
+        3024,
+        4032
+      ],
+      "texture": 2027.045883178711
+    },
+    {
+      "id": "bg-063",
+      "sourceFile": "d66653f38f7a9a827dc3.jpg",
+      "sourceId": "train/70_jpg.rf.2d330407a8fffdabdb8118fbefea3368.jpg",
+      "sourceSha256": "42576c83b110709317f975568e302969df4bd4cadf297c07410dbbfa0c8b4362",
+      "sourceGroup": "d66653f38f7a9a827dc3",
+      "cropXYXY": [
+        0,
+        2621,
+        1058,
+        4032
+      ],
+      "texture": 1996.790259655565
+    },
+    {
+      "id": "bg-064",
+      "sourceFile": "f28bbe3bc03e42fade65.jpg",
+      "sourceId": "test/21_000_jpg.rf.f900110f9ebb03369c8c73d941f93368.jpg",
+      "sourceSha256": "e5bb92fde376321e72f48ded67300cf00a8d940b600510f90be50ee4b1052776",
+      "sourceGroup": "d6eaec61756a232e2450",
+      "cropXYXY": [
+        1664,
+        2218,
+        3024,
+        4032
+      ],
+      "texture": 2536.5517581552267
+    },
+    {
+      "id": "bg-065",
+      "sourceFile": "f28bbe3bc03e42fade65.jpg",
+      "sourceId": "test/21_000_jpg.rf.f900110f9ebb03369c8c73d941f93368.jpg",
+      "sourceSha256": "e5bb92fde376321e72f48ded67300cf00a8d940b600510f90be50ee4b1052776",
+      "sourceGroup": "d6eaec61756a232e2450",
+      "cropXYXY": [
+        649,
+        0,
+        1707,
+        1411
+      ],
+      "texture": 1071.4960827194154
+    },
+    {
+      "id": "bg-067",
+      "sourceFile": "d9176383238026223703.jpg",
+      "sourceId": "train/47_jpg.rf.9e1e03943d13624ccb9959308860ca46.jpg",
+      "sourceSha256": "eb31fc786235f12a58835f1c67e6f508bbb70cd45b7a42cf2ed8091f1a11fc3b",
+      "sourceGroup": "d9176383238026223703",
+      "cropXYXY": [
+        2621,
+        0,
+        4032,
+        1058
+      ],
+      "texture": 1290.748743917793
+    },
+    {
+      "id": "bg-068",
+      "sourceFile": "7b28519e1172c9cbd164.jpg",
+      "sourceId": "train/19_000_jpg.rf.f9094a5de8e2d367d3d09083bfe17bb4.jpg",
+      "sourceSha256": "25cf0a3083e0143726fbdc214aa9fb4dc903d44c131957f79c2824abc67c06cd",
+      "sourceGroup": "dedb482b4f7bb4858f82",
+      "cropXYXY": [
+        0,
+        1730,
+        1058,
+        3141
+      ],
+      "texture": 4099.735062345862
+    },
+    {
+      "id": "bg-070",
+      "sourceFile": "f3e9fbef903105ad122a.jpg",
+      "sourceId": "train/51_jpg.rf.ea3cf63bd38d4925f13d4b29adf9e873.jpg",
+      "sourceSha256": "76fbc3cf84fe1ab5528be0cc91f3a4e96cce140e44e1e42045855e27a6ae934a",
+      "sourceGroup": "f3e9fbef903105ad122a",
+      "cropXYXY": [
+        0,
+        0,
+        1411,
+        1058
+      ],
+      "texture": 2529.4116811156273
+    },
+    {
+      "id": "bg-071",
+      "sourceFile": "f3e9fbef903105ad122a.jpg",
+      "sourceId": "train/51_jpg.rf.ea3cf63bd38d4925f13d4b29adf9e873.jpg",
+      "sourceSha256": "76fbc3cf84fe1ab5528be0cc91f3a4e96cce140e44e1e42045855e27a6ae934a",
+      "sourceGroup": "f3e9fbef903105ad122a",
+      "cropXYXY": [
+        2621,
+        0,
+        4032,
+        1058
+      ],
+      "texture": 1619.9646174870431
+    }
+  ],
+  "rejected": [
+    {
+      "id": "bg-005",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-008",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-015",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-018",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-027",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-032",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-034",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-038",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-043",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-049",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-066",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    },
+    {
+      "id": "bg-069",
+      "reason": "Contains a visible or ambiguous tile fragment/edge; conservatively exclude from background supervision."
+    }
+  ],
+  "testOpened": false,
+  "validationPixelsUsed": false,
+  "maximumCropsPerGroup": 2
+}

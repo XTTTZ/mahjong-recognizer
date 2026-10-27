@@ -181,7 +181,7 @@ function App() {
     const slowTimer = window.setTimeout(() => {
       if (generation === generationRef.current) setSlow(true);
     }, 8_000);
-    const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, 65_000);
+    const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, 95_000);
     setState('recognizing');
     setResult(null);
     setCorrections({});
@@ -278,7 +278,7 @@ function App() {
       {offline && <p className="notice" role="status"><Icon name="alert" size={18} />当前没有网络，连接后即可识别。</p>}
       {error && <div className="error-notice" role="alert"><Icon name="alert" size={19} /><p>{error}</p><button className="icon-button" onClick={() => setError(null)} aria-label="关闭提示"><Icon name="close" size={17} /></button></div>}
 
-      {state === 'recognizing' ? <div className="recognition-progress" role="status" aria-live="polite"><span className="spinner" /><div><strong>正在仔细看牌…</strong><p>{slow ? '首次识别可能需要多等一会儿' : '请稍候，结果马上呈现'}</p></div><button className="text-button" onClick={cancel}>取消</button></div>
+      {state === 'recognizing' ? <div className="recognition-progress" role="status" aria-live="polite"><span className="spinner" /><div><strong>正在仔细看牌…</strong><p>{slow ? '服务正在启动，可能需要多等一会儿' : '请稍候，结果马上呈现'}</p></div><button className="text-button" onClick={cancel}>取消</button></div>
         : state === 'preparing' ? <div className="recognition-progress" role="status"><span className="spinner" /><strong>正在准备照片…</strong></div>
           : photo && !result ? <div className="actions photo-actions"><button className="primary-button" onClick={() => void startRecognition()} disabled={offline || configured === false}><Icon name="spark" />开始识别<Icon name="arrow" size={19} /></button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />换一张</button></div>
             : !photo ? <div className="actions"><button className="primary-button" onClick={() => cameraRef.current?.click()}><Icon name="camera" />拍一张<Icon name="arrow" size={19} /></button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />从相册选</button></div> : null}

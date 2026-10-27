@@ -28,13 +28,20 @@ def main():
                    'YOUR_CLOUDFLARE_ACCOUNT_ID':'YOUR_CLOUDFLARE_ACCOUNT_ID',
                    'YOUR_CLOUDFLARE_ZONE_ID':'YOUR_CLOUDFLARE_ZONE_ID'}
     copied=[];omitted=[]
+    reviewed_public_metadata={'infra/windows/verified/v6/parent-assets.json',
+                              'infra/windows/verified/v6/expected-environment.json',
+                              'docs/models/release-20261027.json',
+                              'docs/models/weight-privacy-audit-20261027.json',
+                              'docs/deploy/WEB.md'}
     with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
         for item in bundle.getmembers():
             name=item.name
             if not item.isfile():continue
             historical_model_record=(name.startswith('docs/models/') and name.endswith('.json')
-                                     and name != 'docs/models/yolo-cascade-pretrained.json')
-            if (name.startswith(excludes) or historical_model_record or name in ('INFRA.md','PROGRESS.md')
+                                     and name != 'docs/models/yolo-cascade-pretrained.json'
+                                     and name not in reviewed_public_metadata)
+            if (name.startswith(excludes) and name not in reviewed_public_metadata
+                or historical_model_record or name in ('INFRA.md','PROGRESS.md')
                 or '/.secrets/' in '/'+name or name.startswith('.env') and not name.endswith('.example')):
                 omitted.append(name);continue
             data=bundle.extractfile(item).read()
@@ -52,6 +59,9 @@ def main():
                         'https://github.com/XTTTZ/mahjong-recognizer',text)
             text=re.sub(r'192\.168\.\d{1,3}\.\d{1,3}','TRAINING_HOST',text)
             text=re.sub(r'(?m)^.*ssh-ed25519 [A-Za-z0-9+/=]+.*$','[SSH public-key configuration omitted; use your own key]',text)
+            if name=='docs/models/V6_REFINEMENT.md':
+                text=text.replace('[逐图诊断记录](v6/failure-analysis.json)。',
+                    '逐图诊断属于私有实验记录，不随公开源码分发；上文提供聚合错误类型。')
             if name.startswith('infra/windows/verified/') and name.endswith('.json'):
                 try:
                     value=json.loads(text)

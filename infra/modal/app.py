@@ -39,8 +39,15 @@ if modal.is_local():
     )
 
 
-@app.cls(image=image, gpu=os.environ.get("MAHJONG_GPU", "L4"), min_containers=0, max_containers=1,
-         cpu=1, memory=4096, scaledown_window=15, timeout=60)
+# Both GPUs support the classifier's BF16 inference. A second eligible type
+# avoids waiting exclusively for L4 capacity during a cold request.
+GPU_TYPES = [name.strip() for name in os.environ.get("MAHJONG_GPU", "L4,A10").split(",") if name.strip()]
+if not GPU_TYPES:
+    raise ValueError("MAHJONG_GPU must include at least one GPU type")
+
+
+@app.cls(image=image, gpu=GPU_TYPES, min_containers=0, max_containers=1,
+         cpu=1, memory=4096, scaledown_window=15, timeout=90)
 class Recognizer:
     @modal.enter()
     def load(self):

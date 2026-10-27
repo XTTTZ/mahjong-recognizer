@@ -1,0 +1,29 @@
+{
+  "version": "mahjong-cascade-v26-effv2s-v4-20261027",
+  "cudaMasked": true,
+  "filesModified": false,
+  "suspectedValuesPrinted": false,
+  "checks": [
+    "recursive metadata strings",
+    "raw data.pkl bytes",
+    "home paths",
+    "known usernames and machine name",
+    "LAN IPv4",
+    "private source repository reference",
+    "common API token/Bearer/private-key markers"
+  ],
+  "files": {
+    "detector.pt": {
+      "metadataStringsChecked": 221,
+      "issues": [],
+      "absolutePathFields": 8,
+      "allAbsolutePathsUnder": "D:/mahjong/"
+    },
+    "classifier.pt": {
+      "metadataStringsChecked": 47,
+      "issues": [],
+      "absolutePathFields": 0
+    }
+  },
+  "note": "Pattern-based metadata audit; source checkpoint and model package hashes unchanged."
+}

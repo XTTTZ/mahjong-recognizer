@@ -12,11 +12,14 @@ const option = (name, fallback) => {
 const site = option('--url', 'https://mahjong.avalonxty.site');
 const image = option('--image');
 const recognize = args.includes('--recognize');
+const proxy = option('--proxy');
+const expectedModel = option('--expect-model');
 const out = path.resolve(option('--out', 'artifacts/web/live'));
 if (recognize && !image) throw new Error('--recognize requires a local --image');
 await fs.mkdir(out, { recursive: true });
-const browser = await chromium.launch({ headless: true });
-const report = { site, observedAt: new Date().toISOString(), gpuRequested: recognize, screens: [], browserErrors: [] };
+const browser = await chromium.launch({ headless: true, ...(proxy ? { proxy: { server: proxy } } : {}) });
+const report = { site, observedAt: new Date().toISOString(), gpuRequested: recognize, proxyUsed: Boolean(proxy),
+  screens: [], browserErrors: [], consoleErrors: [], externalScripts: [], cspViolations: [], pageChecks: [], sourceOffers: [] };
 try {
   const context = await browser.newContext({ isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
   const healthResponse = await context.request.get(`${site}/api/health`);
@@ -29,10 +32,21 @@ try {
     const page = await context.newPage();
     await page.setViewportSize({ width, height: 844 });
     page.on('pageerror', error => report.browserErrors.push(error.message));
+    page.on('console', message => {
+      if (message.type() === 'error') report.consoleErrors.push({ width, message: message.text().slice(0, 1000),
+        source: message.location().url });
+    });
+    await page.addInitScript(() => {
+      window.__mahjongCspViolations = [];
+      document.addEventListener('securitypolicyviolation', event => {
+        window.__mahjongCspViolations.push({ blockedURI: event.blockedURI, directive: event.effectiveDirective });
+      });
+    });
     const browserHealth = page.waitForResponse(response => new URL(response.url()).pathname === '/api/health');
     const navigation = await page.goto(site);
     assert.equal(navigation.status(), 200);
     assert.match(navigation.headers()['content-security-policy'] ?? '', /frame-ancestors 'none'/);
+    report.pageChecks.push({ width, noTransform: /\bno-transform\b/.test(navigation.headers()['cache-control'] ?? '') });
     await page.getByRole('button', { name: '拍一张', exact: true }).waitFor();
     assert.equal((await browserHealth).status(), 200);
     await page.getByText('试用模型 · 结果请逐张核对', { exact: true }).waitFor();
@@ -50,12 +64,14 @@ try {
         let calls = 0;
         page.on('request', request => { if (new URL(request.url()).pathname === '/api/recognize') calls++; });
         const started = Date.now();
-        const responsePromise = page.waitForResponse(response => new URL(response.url()).pathname === '/api/recognize', { timeout: 75_000 });
+        const responsePromise = page.waitForResponse(response => new URL(response.url()).pathname === '/api/recognize', { timeout: 105_000 });
         await page.getByRole('button', { name: '开始识别', exact: true }).click();
         const response = await responsePromise;
+        report.recognitionHttpStatus = response.status();
         assert.equal(response.status(), 200, `Recognition returned ${response.status()}: ${await response.text()}`);
         const value = await response.json();
         assert.equal(typeof value.modelVersion, 'string');
+        if (expectedModel) assert.equal(value.modelVersion, expectedModel, 'The gateway must serve the intended released model');
         assert.equal(Array.isArray(value.tiles), true);
         assert.equal(typeof value.image.width, 'number');
         await page.getByRole('region', { name: '识别结果' }).waitFor();
@@ -86,9 +102,20 @@ try {
       report.screens.push(file);
     }
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    const scripts = await page.locator('script[src]').evaluateAll(nodes => nodes.map(node => node.src));
+    report.externalScripts.push(...scripts.filter(src => new URL(src).origin !== new URL(site).origin));
+    report.cspViolations.push(...await page.evaluate(() => window.__mahjongCspViolations));
+    report.sourceOffers.push({ width,
+      source: await page.locator('footer a[href="https://github.com/XTTTZ/mahjong-recognizer"]').count() === 1,
+      model: await page.locator('footer a[href="https://github.com/XTTTZ/mahjong-recognizer/releases/tag/model-v4-20261027"]').count() === 1 });
     await page.close();
   }
   assert.deepEqual(report.browserErrors, []);
+  assert.deepEqual(report.consoleErrors, []);
+  assert.deepEqual(report.cspViolations, []);
+  assert.deepEqual(report.externalScripts, []);
+  assert.equal(report.pageChecks.every(page => page.noTransform), true, 'Every page must opt out of script injection');
+  assert.equal(report.sourceOffers.every(page => page.source && page.model), true, 'Every page must show the source/model offer');
   report.passed = true;
 } catch (error) {
   report.passed = false;

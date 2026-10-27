@@ -53,7 +53,7 @@ export async function recognize(request: Request, env: Env): Promise<Response> {
   const abort = new AbortController();
   const onAbort = () => abort.abort();
   request.signal.addEventListener('abort', onAbort, { once: true });
-  const timer = setTimeout(() => abort.abort(), 60_000);
+  const timer = setTimeout(() => abort.abort(), 90_000);
   let bytes = 0;
   let oversized = false;
   const bounded = request.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({

@@ -1,0 +1,112 @@
+{
+  "version": "mahjong-cascade-v26-effv2s-v4-20261027",
+  "selectionPolicy": "validation_only_full_image_hand_exact_then_model_exact_then_coverage",
+  "selectionGroup": "raw_ten_or_more_tiles",
+  "architecture": "yolo-efficientnet-v2-s-cascade",
+  "detectorArchitecture": "yolo26s-generic",
+  "classifierArchitecture": "efficientnet-v2-s",
+  "threshold": 0.35,
+  "acceptThreshold": 0.7,
+  "resolution": 960,
+  "classifierResolution": 320,
+  "cropContext": 0.08,
+  "windowsModelDirectory": "D:/mahjong/packages/mahjong-cascade-v26-effv2s-v4-20261027",
+  "modelManifestSha256": "590488bb917798ab184078d4ad0f415a61444ff506bf99683346d2f233290c75",
+  "filesSha256": {
+    "detector.pt": "92f4091baa4dea3af611ee8b1e9211b49a58d72fdd8732cddff0e2344cc12afb",
+    "classifier.pt": "bc1ce8fa421ae3a81636f2de31da91b376a7c6c13160fdc79afff4bfa5820cfc"
+  },
+  "classifierExport": {
+    "trainingStateRemoved": true,
+    "allModelTensorsExactlyEqual": true,
+    "sourceCheckpointSha256": "e654e90dedc580cdc56b80dcb7d2cecebf22e10880661cbb18e3178590071b63",
+    "sourceBytes": 244060605,
+    "exportedBytes": 81817567
+  },
+  "gpuValidation": {
+    "images": 82,
+    "successes": 72,
+    "hand_exact_match": 0.8780487804878049,
+    "wilson95_image_independence_assumption": [
+      0.7898702600481664,
+      0.9323914635032211
+    ],
+    "model_exact": 0.9024390243902439,
+    "multiset_exact": 0.9024390243902439,
+    "accepted_coverage": 0.8780487804878049,
+    "accepted_exact": 1.0,
+    "failed_requests": 0,
+    "note": "Independent-image Wilson interval; use source-cluster bootstrap when grouping is available."
+  },
+  "sealedTest": {
+    "images": 47,
+    "successes": 31,
+    "hand_exact_match": 0.6595744680851063,
+    "wilson95_image_independence_assumption": [
+      0.5167092456194193,
+      0.7783255615622839
+    ],
+    "model_exact": 0.7446808510638298,
+    "multiset_exact": 0.7446808510638298,
+    "accepted_coverage": 0.7446808510638298,
+    "accepted_exact": 0.8857142857142857,
+    "failed_requests": 0,
+    "note": "Independent-image Wilson interval; use source-cluster bootstrap when grouping is available."
+  },
+  "sealedTestAll": {
+    "images": 121,
+    "successes": 101,
+    "hand_exact_match": 0.8347107438016529,
+    "wilson95_image_independence_assumption": [
+      0.7584457954318083,
+      0.8903771257769045
+    ],
+    "model_exact": 0.8677685950413223,
+    "multiset_exact": 0.8677685950413223,
+    "accepted_coverage": 0.8760330578512396,
+    "accepted_exact": 0.9528301886792453,
+    "failed_requests": 0,
+    "note": "Independent-image Wilson interval; use source-cluster bootstrap when grouping is available."
+  },
+  "sealedTest13or14": {
+    "images": 22,
+    "successes": 19,
+    "hand_exact_match": 0.8636363636363636,
+    "wilson95_image_independence_assumption": [
+      0.6666501283342828,
+      0.9525099628594474
+    ],
+    "model_exact": 0.8636363636363636,
+    "multiset_exact": 0.8636363636363636,
+    "accepted_coverage": 0.9545454545454546,
+    "accepted_exact": 0.9047619047619048,
+    "failed_requests": 0,
+    "note": "Independent-image Wilson interval; use source-cluster bootstrap when grouping is available."
+  },
+  "testContract": {
+    "annotationSha256": "21c54f59aafa77a153903456449b4cc6b56ae4a96da44509bad68cf208ebbc4a",
+    "images": 121,
+    "annotations": 916,
+    "groups": 112,
+    "imageTreeSha256": "0bc7e3033108484108ec483364bd2b897c5e2e3da337555608e97ee9a11d2168"
+  },
+  "gpuName": "NVIDIA GeForce RTX 4070 Ti",
+  "winnerLockSha256": "23085d0a31708edde2c662d91ac8be6d28976ab525fe2e11af48c68a4c0a78b3",
+  "gpuValidationReportSha256": "7e6216e7f531d83d137f92bf3aad454da3e380790851a9431200be30f86d9e88",
+  "sealedTestReportSha256": "69c83746f6d8cd81a44b0d5c4b4c473f1e99c308b30cc7f37c864fc6b32c98fb",
+  "sourceTrainingStatus": {
+    "trainingCompletion": "completed"
+  },
+  "sourceClassifierTrainingStatus": {
+    "trainingCompletion": "timed_out_checkpoint_recovery",
+    "terminalReceiptSha256": "edf610205d5ed05b787df151f436e61630f0ede5901c6903f91b6fe356c1cfea",
+    "terminalReceipt": "D:\\mahjong\\runs\\v5-breadth-12h-20261026-efficientnetv2-s-320\\status.json",
+    "terminalFinishedAt": "2026-10-27T03:42:36.197600+00:00"
+  },
+  "evaluationCodeBundleSha256": "9eabb2485be48c652019dc1b225e091225926693cea88b8e474467c2bc8f15f2",
+  "testWasUsedForSelection": false,
+  "modelAndThresholdFrozenBeforeTest": true,
+  "productionValidated": false,
+  "deploymentNote": "Research release; independent real-room phone benchmark still missing; verify every tile. Modal GPU path must be checked separately.",
+  "localModelRelativeDirectory": "artifacts/models/releases/mahjong-cascade-v26-effv2s-v4-20261027"
+}
