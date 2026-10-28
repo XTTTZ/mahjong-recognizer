@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import worker, { recognize } from './index';
+import worker, { recognize, warmup } from './index';
 
 function environment(overrides: Record<string, unknown> = {}): Env {
   return {
@@ -7,6 +7,8 @@ function environment(overrides: Record<string, unknown> = {}): Env {
     MODAL_URL: 'https://example--recognize.modal.run/', MODAL_PROXY_TOKEN: 'test-proxy-token',
     USER_LIMIT: { limit: async () => ({ success: true }) },
     SITE_LIMIT: { limit: async () => ({ success: true }) },
+    WARM_USER_LIMIT: { limit: async () => ({ success: true }) },
+    WARM_SITE_LIMIT: { limit: async () => ({ success: true }) },
     ...overrides,
   } as Env;
 }
@@ -101,5 +103,44 @@ describe('upload gateway', () => {
       method: 'POST', headers, body: new Uint8Array(12 * 1024 * 1024 + 64 * 1024 + 1),
     });
     expect((await recognize(request, environment())).status).toBe(413);
+  });
+});
+
+describe('page-open warmup admission', () => {
+  const request = (headers: Record<string, string> = {}) => new Request('https://mahjong.example/api/warmup', {
+    method: 'POST', headers: { Origin: 'https://mahjong.example', ...headers },
+  });
+  it('loads only the authenticated model health endpoint, strips query, and returns no secret', async () => {
+    const fetch = vi.fn(async (_url: URL, _init: RequestInit) => Response.json({ loaded: true }));
+    vi.stubGlobal('fetch', fetch);
+    const response = await warmup(request(), environment({ MODAL_URL: 'https://example.modal.run/recognize?private=1' }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ready: true });
+    expect(fetch.mock.calls[0][0].href).toBe('https://example.modal.run/health');
+    expect(fetch.mock.calls[0][1]).toMatchObject({ method: 'GET', redirect: 'manual', headers: { Authorization: 'Bearer test-proxy-token' } });
+  });
+  it('rejects cross-site calls, disabled service and a separate warmup quota before GPU', async () => {
+    const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
+    expect((await warmup(request({ Origin: 'https://bad.example' }), environment())).status).toBe(403);
+    expect((await warmup(request({ 'Sec-Fetch-Site': 'cross-site' }), environment())).status).toBe(403);
+    expect((await warmup(request(), environment({ INFERENCE_ENABLED: 'false' }))).status).toBe(503);
+    expect(await (await warmup(request(), environment({ WARM_SITE_LIMIT: { limit: async () => ({ success: false }) } }))).json()).toEqual({ ready: false, deferred: true });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it('never follows an upstream redirect and does not spend the recognition quota', async () => {
+    const fetch = vi.fn(async () => new Response('', { status: 307, headers: { Location: 'https://bad.example' } }));
+    const limit = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    const response = await warmup(request(), environment({ USER_LIMIT: { limit }, SITE_LIMIT: { limit } }));
+    expect(response.status).toBe(503); expect(fetch).toHaveBeenCalledTimes(1); expect(limit).not.toHaveBeenCalled();
+  });
+  it('bounds a failed cold warmup without retrying', async () => {
+    vi.useFakeTimers();
+    const fetch = vi.fn((_url: URL, init: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init.signal?.addEventListener('abort', () => reject(new Error('timeout')), { once: true });
+    })); vi.stubGlobal('fetch', fetch);
+    const pending = warmup(request(), environment());
+    await vi.advanceTimersByTimeAsync(60_001);
+    expect((await pending).status).toBe(503); expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

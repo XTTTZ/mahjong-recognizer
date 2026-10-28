@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from './icons';
 import { recognize, RecognitionError, serviceConfigured } from './api';
 import { cropPhoto, preparePhoto, rotatePhoto } from './photo';
 import { canonicalCropEdges, isFullCrop, rotateCropClockwise, type CropEdges } from './crop';
 import { CropDialog } from './CropDialog';
 import { TileFace, WelcomeTiles } from './TileFace';
+import { ScoringPanel } from './ScoringPanel';
+import { warmupWhenVisible } from './warmup';
 import type { PreparedPhoto, RecognitionResult, TileCorrection, TilePrediction } from './types';
 
 const numbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
@@ -19,6 +21,9 @@ const correctionGroups = [
 const displayLabels = new Map(correctionGroups.flatMap(group => group.values).map(tile => [tile.classId, tile.label]));
 
 type RequestState = 'idle' | 'preparing' | 'recognizing';
+interface ManualTile { id: string; classId: string; label: string; source: 'manual' }
+type EditableTile = TilePrediction | ManualTile;
+const isManualTile = (tile: EditableTile): tile is ManualTile => 'source' in tile && tile.source === 'manual';
 
 function App() {
   const [photo, setPhoto] = useState<PreparedPhoto | null>(null);
@@ -35,6 +40,10 @@ function App() {
   const [selectedTile, setSelectedTile] = useState<string | null>(null);
   const [corrections, setCorrections] = useState<Record<string, TileCorrection>>({});
   const [hiddenTiles, setHiddenTiles] = useState<string[]>([]);
+  const [manualTiles, setManualTiles] = useState<ManualTile[]>([]);
+  const [addingTile, setAddingTile] = useState(false);
+  const [lastAdded, setLastAdded] = useState<string | null>(null);
+  const [handReset, setHandReset] = useState(0);
   const [dragOver, setDragOver] = useState(false);
   const [zoomed, setZoomed] = useState(false);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -45,6 +54,8 @@ function App() {
   const originalPhotoRef = useRef<PreparedPhoto | null>(null);
   const correctionDialog = useRef<HTMLDialogElement>(null);
   const busy = state !== 'idle';
+
+  useEffect(() => warmupWhenVisible(), []);
 
   useEffect(() => {
     const healthController = new AbortController();
@@ -68,9 +79,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (selectedTile) correctionDialog.current?.showModal();
+    if (selectedTile || addingTile) correctionDialog.current?.showModal();
     else correctionDialog.current?.close();
-  }, [selectedTile]);
+  }, [selectedTile, addingTile]);
 
   const replacePhotoPair = (next: PreparedPhoto | null, original: PreparedPhoto | null) => {
     const nextUrls = new Set([next?.url, original?.url]);
@@ -84,6 +95,10 @@ function App() {
     setResult(null);
     setCorrections({});
     setHiddenTiles([]);
+    setManualTiles([]);
+    setAddingTile(false);
+    setLastAdded(null);
+    setHandReset(value => value + 1);
     setSelectedTile(null);
     setZoomed(false);
   };
@@ -186,6 +201,9 @@ function App() {
     setResult(null);
     setCorrections({});
     setHiddenTiles([]);
+    setManualTiles([]);
+    setAddingTile(false);
+    setLastAdded(null);
     setError(null);
     try {
       const response = await recognize(photo.file, controller.signal);
@@ -214,18 +232,48 @@ function App() {
     setError('已停止等待。需要时可重新选择照片。');
   };
 
-  const visibleTiles = result?.tiles.filter(tile => !hiddenTiles.includes(tile.id)) ?? [];
-  const changed = Object.keys(corrections).length + hiddenTiles.length;
+  const allTiles: EditableTile[] = [...(result?.tiles ?? []), ...manualTiles];
+  const visibleDetectedTiles = result?.tiles.filter(tile => !hiddenTiles.includes(tile.id)) ?? [];
+  const visibleTiles = allTiles.filter(tile => !hiddenTiles.includes(tile.id));
+  const changed = Object.keys(corrections).length + hiddenTiles.length + manualTiles.length;
   const allRemoved = Boolean(result?.tiles.length && visibleTiles.length === 0);
-  const activeTile = result?.tiles.find(tile => tile.id === selectedTile);
-  const corrected = (tile: TilePrediction) => corrections[tile.id]
+  const activeTile = allTiles.find(tile => tile.id === selectedTile);
+  const corrected = (tile: EditableTile) => corrections[tile.id]
     ?? { classId: tile.classId, label: displayLabels.get(tile.classId) ?? tile.label };
-  const uncertainCount = visibleTiles.filter(tile => tile.uncertain && !corrections[tile.id]).length;
+  const uncertainCount = visibleDetectedTiles.filter(tile => tile.uncertain && !corrections[tile.id]).length;
+  const originalNeedsReview = Boolean(result && (result.quality.status === 'needs_retake' || !visibleTiles.length));
+  const badgeNeedsReview = !allRemoved && (uncertainCount > 0 || (changed === 0 && originalNeedsReview));
+  const badgeText = allRemoved || (changed > 0 && uncertainCount === 0) ? '人工调整'
+    : uncertainCount ? `${uncertainCount} 张待核对` : originalNeedsReview ? '建议重拍' : '请核对牌面';
+  const scoringTiles = useMemo(() => [...(result?.tiles ?? []), ...manualTiles]
+    .filter(tile => !hiddenTiles.includes(tile.id)).map(tile => corrections[tile.id]?.classId ?? tile.classId),
+  [result, manualTiles, hiddenTiles, corrections]);
+  const tileCounts = new Map<string, number>();
+  for (const code of scoringTiles) tileCounts.set(code, (tileCounts.get(code) ?? 0) + 1);
+  const undoHand = () => {
+    setCorrections({}); setHiddenTiles([]); setManualTiles([]); setHandReset(value => value + 1);
+  };
+  const closeTileDialog = () => { setSelectedTile(null); setAddingTile(false); setLastAdded(null); };
+  const deleteTile = (tile: EditableTile) => {
+    if (isManualTile(tile)) setManualTiles(previous => previous.filter(value => value.id !== tile.id));
+    else setHiddenTiles(previous => previous.includes(tile.id) ? previous : [...previous, tile.id]);
+    setCorrections(previous => { const next = { ...previous }; delete next[tile.id]; return next; });
+    closeTileDialog();
+  };
+  const chooseTile = (option: TileCorrection) => {
+    if (addingTile) {
+      if ((tileCounts.get(option.classId) ?? 0) >= 4 || visibleTiles.length >= 18) return;
+      setManualTiles(previous => [...previous, { ...option, id: `manual-${crypto.randomUUID()}`, source: 'manual' }]);
+      setLastAdded(option.label);
+    } else if (activeTile) {
+      setCorrections(previous => ({ ...previous, [activeTile.id]: option })); closeTileDialog();
+    }
+  };
 
   return <>
     <main className="shell">
       <header className="header">
-        <a className="brand" href="/" aria-label="识麻将首页"><img src="/icon.svg" width="37" height="37" alt="" /><span>识麻将<span className="brand-description">拍照识牌</span></span></a>
+        <a className="brand" href="/" aria-label="识麻将首页"><img src="/icon.svg" width="37" height="37" alt="" /><span>识麻将<span className="brand-description">拍照识牌 · 判断胡牌</span></span></a>
         <button className={`icon-button info-button ${infoOpen ? 'active' : ''}`} aria-label="拍摄提示与隐私" aria-expanded={infoOpen} onClick={() => setInfoOpen(!infoOpen)}><Icon name="info" size={21} /></button>
       </header>
 
@@ -255,7 +303,7 @@ function App() {
             <div className="photo-canvas" style={{ aspectRatio: `${photo.width} / ${photo.height}` }}>
               <img className="source-photo" src={photo.url} alt="本次识别的麻将照片" />
               {result && <svg className="annotation-layer" viewBox={`0 0 ${result.image.width} ${result.image.height}`} aria-label="麻将牌位置">
-                {visibleTiles.map((tile, i) => <g key={tile.id} className={`annotation ${tile.uncertain && !corrections[tile.id] ? 'uncertain' : ''}`} role="button" aria-label={`第 ${i + 1} 张：${corrected(tile).label}，查看或修改`} tabIndex={0} onClick={() => setSelectedTile(tile.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedTile(tile.id); } }}>
+                {visibleDetectedTiles.map((tile, i) => <g key={tile.id} className={`annotation ${tile.uncertain && !corrections[tile.id] ? 'uncertain' : ''}`} role="button" aria-label={`第 ${i + 1} 张：${corrected(tile).label}，查看或修改`} tabIndex={0} onClick={() => setSelectedTile(tile.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedTile(tile.id); } }}>
                   <rect x={tile.bbox[0]} y={tile.bbox[1]} width={tile.bbox[2]} height={tile.bbox[3]} vectorEffect="non-scaling-stroke" />
                   <text x={tile.bbox[0] + 3} y={tile.bbox[1] + Math.min(24, result.image.width * 0.028)} fontSize={Math.max(14, result.image.width * 0.024)}>{i + 1}</text>
                 </g>)}
@@ -284,13 +332,16 @@ function App() {
             : !photo ? <div className="actions"><button className="primary-button" onClick={() => cameraRef.current?.click()}><Icon name="camera" />拍一张<Icon name="arrow" size={19} /></button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />从相册选</button></div> : null}
 
       {result && <section className="results" aria-label="识别结果" aria-live="polite">
-        <div className="results-heading"><div><span className="eyebrow">这次识别</span><h1>{visibleTiles.length ? `${visibleTiles.length} 张麻将` : allRemoved ? '已移除全部牌' : '暂未找到麻将'}</h1></div><span className={`result-badge ${!allRemoved && (uncertainCount || result.quality.status === 'needs_retake' || !visibleTiles.length) ? 'needs-check' : ''}`}><Icon name={!allRemoved && (uncertainCount || result.quality.status === 'needs_retake' || !visibleTiles.length) ? 'alert' : 'check'} size={15} />{allRemoved ? '人工调整' : uncertainCount ? `${uncertainCount} 张待核对` : result.quality.status === 'needs_retake' || !visibleTiles.length ? '建议重拍' : '请核对牌面'}</span></div>
-        {!allRemoved && (result.quality.status === 'needs_retake' || result.quality.reasons.length > 0 || !visibleTiles.length) && <div className="quality-note"><Icon name="alert" size={18} /><p>{result.quality.reasons.length ? result.quality.reasons.join('；') : '没有找到清楚的牌面，请靠近一些重新拍摄。'}</p></div>}
-        {allRemoved && <button className="secondary-button" onClick={() => { setCorrections({}); setHiddenTiles([]); }}>撤销人工调整</button>}
+        <div className="results-heading"><div><span className="eyebrow">这次识别</span><h1>{visibleTiles.length ? `${visibleTiles.length} 张麻将` : allRemoved ? '已移除全部牌' : '暂未找到麻将'}</h1></div><span className={`result-badge ${badgeNeedsReview ? 'needs-check' : ''}`}><Icon name={badgeNeedsReview ? 'alert' : 'check'} size={15} />{badgeText}</span></div>
+        {!allRemoved && changed === 0 && (result.quality.status === 'needs_retake' || result.quality.reasons.length > 0 || !visibleTiles.length) && <div className="quality-note"><Icon name="alert" size={18} /><p>{result.quality.reasons.length ? result.quality.reasons.join('；') : '没有找到清楚的牌面，可重新拍摄或手动补牌。'}</p></div>}
+        {allRemoved && <button className="secondary-button" onClick={undoHand}>撤销人工调整</button>}
         {visibleTiles.length > 0 && <><div className="tile-list">{visibleTiles.map((tile, index) => {
           const value = corrected(tile);
-          return <button key={tile.id} className={`tile-button ${tile.uncertain && !corrections[tile.id] ? 'needs-check' : ''} ${corrections[tile.id] ? 'corrected' : ''}`} aria-label={`第 ${index + 1} 张 ${value.label}${corrections[tile.id] ? '，已手动修改' : tile.uncertain ? '，待核对' : ''}`} onClick={() => setSelectedTile(tile.id)}><span className="tile-index">{index + 1}</span><TileFace classId={value.classId} label={value.label} /><span className="tile-label">{value.label}</span>{tile.uncertain && !corrections[tile.id] ? <span className="tile-flag">待核对</span> : corrections[tile.id] ? <span className="tile-flag manual">已修改</span> : <span className="tile-flag placeholder">核对</span>}</button>;
-        })}</div><div className="results-hint"><span>点击牌面可修改{changed > 0 ? ` · ${changed} 处人工调整` : ''}</span>{changed > 0 && <button className="text-button" onClick={() => { setCorrections({}); setHiddenTiles([]); }}>撤销调整</button>}</div></>}
+          const manual = isManualTile(tile), uncertain = !manual && tile.uncertain;
+          return <button key={tile.id} className={`tile-button ${uncertain && !corrections[tile.id] ? 'needs-check' : ''} ${corrections[tile.id] ? 'corrected' : ''} ${manual ? 'manual-added' : ''}`} aria-label={`第 ${index + 1} 张 ${value.label}${manual ? '，手动补入' : corrections[tile.id] ? '，已手动修改' : uncertain ? '，待核对' : ''}`} onClick={() => setSelectedTile(tile.id)}><span className="tile-index">{index + 1}</span><TileFace classId={value.classId} label={value.label} /><span className="tile-label">{value.label}</span>{manual ? <span className="tile-flag manual">手动补入</span> : uncertain && !corrections[tile.id] ? <span className="tile-flag">待核对</span> : corrections[tile.id] ? <span className="tile-flag manual">已修改</span> : <span className="tile-flag placeholder">核对</span>}</button>;
+        })}</div><div className="results-hint"><span>点击牌面可修改{changed > 0 ? ` · ${changed} 处人工调整` : ''}</span>{changed > 0 && <button className="text-button" onClick={undoHand}>撤销调整</button>}</div></>}
+        <div className="hand-edit-actions"><button className="secondary-button" disabled={visibleTiles.length >= 18} onClick={() => { setSelectedTile(null); setLastAdded(null); setAddingTile(true); }}>＋ 添加麻将牌</button><span>漏牌可补入，多牌可点牌面删除</span></div>
+        <ScoringPanel tiles={scoringTiles} resetKey={`${result.requestId}:${handReset}`} />
         <div className="result-actions"><button className="primary-button" onClick={() => cameraRef.current?.click()}><Icon name="camera" size={20} />再拍一张</button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />换照片</button></div>
         <details className="result-details"><summary>识别详情</summary><dl><div><dt>模型版本</dt><dd>{result.modelVersion}</dd></div><div><dt>处理耗时</dt><dd>{(result.timings.totalMs / 1000).toFixed(1)} 秒</dd></div><div><dt>请求编号</dt><dd>{result.requestId}</dd></div></dl></details>
       </section>}
@@ -305,11 +356,12 @@ function App() {
     </main>
 
     <CropDialog open={cropOpen} source={originalPhoto} initial={cropRegion} onApply={applyCrop} onClose={() => setCropOpen(false)} />
-    <dialog ref={correctionDialog} className="correction-dialog" onClose={() => setSelectedTile(null)} onClick={event => { if (event.target === event.currentTarget) setSelectedTile(null); }} aria-labelledby="tile-dialog-title">
-      {activeTile && <div className="dialog-body"><div className="dialog-heading"><div><span className="eyebrow">逐张核对</span><h2 id="tile-dialog-title">{corrected(activeTile).label}</h2></div><button className="icon-button" autoFocus aria-label="关闭牌面修改" onClick={() => setSelectedTile(null)}><Icon name="close" /></button></div>
-        <p className="dialog-description">选出这张牌的正确牌面。人工修改仅在本次显示。</p>
-        <div className="correction-options">{correctionGroups.map(group => <fieldset key={group.title}><legend>{group.title}</legend><div>{group.values.map(option => <button key={option.classId} className={corrected(activeTile).classId === option.classId ? 'selected' : ''} onClick={() => { setCorrections(previous => ({ ...previous, [activeTile.id]: option })); setSelectedTile(null); }}>{option.label}</button>)}</div></fieldset>)}</div>
-        <div className="dialog-footer"><button className="text-button danger" onClick={() => { setHiddenTiles(previous => [...previous, activeTile.id]); setSelectedTile(null); }}>这不是麻将牌</button>{corrections[activeTile.id] && <button className="text-button" onClick={() => { setCorrections(previous => { const next = { ...previous }; delete next[activeTile.id]; return next; }); setSelectedTile(null); }}>恢复识别结果</button>}</div>
+    <dialog ref={correctionDialog} className="correction-dialog" onClose={closeTileDialog} onClick={event => { if (event.target === event.currentTarget) closeTileDialog(); }} aria-labelledby="tile-dialog-title">
+      {(activeTile || addingTile) && <div className="dialog-body"><div className="dialog-heading"><div><span className="eyebrow">{addingTile ? '补齐手牌' : '逐张核对'}</span><h2 id="tile-dialog-title">{addingTile ? '添加麻将牌' : activeTile && corrected(activeTile).label}</h2></div><button className="icon-button" autoFocus aria-label="关闭牌面修改" onClick={closeTileDialog}><Icon name="close" /></button></div>
+        <p className="dialog-description">{addingTile ? `当前 ${visibleTiles.length} 张，可连续点击补牌，每种最多4张。手动牌只加入清单，不添加照片牌框。` : '选出这张牌的正确牌面。人工修改仅在本次显示。'}</p>
+        {addingTile && lastAdded && <p className="added-tile-notice" role="status">已添加{lastAdded}，当前 {visibleTiles.length} 张</p>}
+        <div className="correction-options">{correctionGroups.filter(group => !addingTile || group.title !== '其他').map(group => <fieldset key={group.title}><legend>{group.title}</legend><div>{group.values.map(option => <button key={option.classId} className={!addingTile && activeTile && corrected(activeTile).classId === option.classId ? 'selected' : ''} disabled={addingTile && ((tileCounts.get(option.classId) ?? 0) >= 4 || visibleTiles.length >= 18)} aria-label={option.label} onClick={() => chooseTile(option)}>{option.label}{addingTile && <small>{tileCounts.get(option.classId) ?? 0}/4</small>}</button>)}</div></fieldset>)}</div>
+        {addingTile ? <div className="dialog-footer"><button className="primary-button" onClick={closeTileDialog}>完成补牌</button></div> : activeTile && <div className="dialog-footer"><button className="text-button danger" onClick={() => deleteTile(activeTile)}>删除这张牌</button>{corrections[activeTile.id] && <button className="text-button" onClick={() => { setCorrections(previous => { const next = { ...previous }; delete next[activeTile.id]; return next; }); closeTileDialog(); }}>{isManualTile(activeTile) ? '恢复添加时牌面' : '恢复识别结果'}</button>}</div>}
       </div>}
     </dialog>
   </>;

@@ -129,6 +129,12 @@ svg { flex-shrink: 0; }
 .tile-flag.manual { color: #527751; }
 .tile-button.needs-check .tile-face { border-color: #d5ae68; border-bottom-color: #d5ae68; background: #fffae8; }
 .tile-button.corrected .tile-face { border-color: #83a57a; }
+.tile-button.manual-added .tile-face { border-color: #83a57a; border-style: dashed; }
+.hand-edit-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 14px 0; }
+.hand-edit-actions .secondary-button { min-height: 44px; font-size: 12px; padding: 10px 13px; }
+.hand-edit-actions > span { font-size: 11px; color: #7b8871; line-height: 1.6; }
+.correction-options button small { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); }
+.added-tile-notice { font-size: 12px; color: #466d3f; background: #eaf0e3; border-radius: 9px; padding: 9px 11px; margin: -10px 0 15px; }
 .tile-button:hover .tile-face { background: #f3f7e9; }
 .results-hint { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 2px; min-height: 32px; text-align: center; margin: 6px 0 18px; font-size: 11px; color: #90977f; }
 .results-hint .text-button { color: #547149; font-size: 10px; padding-left: 7px; padding-right: 7px; }

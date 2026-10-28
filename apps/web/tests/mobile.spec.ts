@@ -1,4 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/warmup', route => route.fulfill({ json: { ready: true } }));
+});
 import fs from 'node:fs/promises';
 
 const classes = ['1m', '2m', '3m', '4p', '5p', '6p', '7s', '8s', '9s', '1z', '2z', '3z', '4z', '5z'];
@@ -108,7 +112,7 @@ for (const width of [320, 390, 430]) {
     await expect(page.getByText('点击牌面可修改 · 1 处人工调整')).toBeVisible();
     await page.screenshot({ path: `artifacts/web/screenshots/result-${width}.png`, fullPage: true });
     await page.getByRole('button', { name: '第 1 张 一万', exact: true }).click();
-    await page.getByRole('button', { name: '这不是麻将牌', exact: true }).click();
+    await page.getByRole('button', { name: '删除这张牌', exact: true }).click();
     await expect(page.getByRole('heading', { name: '13 张麻将' })).toBeVisible();
     await page.getByRole('button', { name: '向右旋转照片' }).click();
     await expect(page.getByRole('button', { name: '开始识别' })).toBeVisible();

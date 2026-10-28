@@ -14,6 +14,44 @@ function error(requestId: string, status: number, code: string, message: string)
   return json({ requestId, error: { code, message } }, status);
 }
 
+/** A page visit can start model loading; it never submits a photograph. */
+export async function warmup(request: Request, env: Env): Promise<Response> {
+  const requestId = crypto.randomUUID();
+  if (request.method !== 'POST') return error(requestId, 405, 'METHOD', '请从本站打开识别页面。');
+  const origin = request.headers.get('Origin');
+  const allowed = env.ALLOWED_ORIGINS.split(',').map(v => v.trim()).filter(Boolean);
+  if ((origin && origin !== new URL(request.url).origin && !allowed.includes(origin))
+    || request.headers.get('Sec-Fetch-Site') === 'cross-site') {
+    return error(requestId, 403, 'ORIGIN', '请从本站打开识别页面。');
+  }
+  if (env.INFERENCE_ENABLED !== 'true' || !env.MODAL_URL || !env.MODAL_PROXY_TOKEN) {
+    return json({ ready: false }, 503);
+  }
+  let upstream: URL;
+  try {
+    upstream = new URL(env.MODAL_URL);
+    if (upstream.protocol !== 'https:' || !upstream.hostname.endsWith('.modal.run')) throw new Error('configuration');
+    upstream.pathname = '/health'; upstream.search = ''; upstream.hash = '';
+  } catch { return json({ ready: false }, 503); }
+  const [user, site] = await Promise.all([
+    env.WARM_USER_LIMIT.limit({ key: request.headers.get('CF-Connecting-IP') ?? 'local' }),
+    env.WARM_SITE_LIMIT.limit({ key: 'warmup' }),
+  ]);
+  if (!user.success || !site.success) return json({ ready: false, deferred: true });
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), 60_000);
+  const started = Date.now();
+  try {
+    const response = await fetch(upstream, { method: 'GET', redirect: 'manual', signal: abort.signal,
+      headers: { Authorization: `Bearer ${env.MODAL_PROXY_TOKEN}`, 'X-Request-ID': requestId } });
+    await response.body?.cancel();
+    console.log(JSON.stringify({ event: 'warmup', requestId, status: response.status, elapsedMs: Date.now() - started }));
+    return json({ ready: response.ok }, response.ok ? 200 : 503);
+  } catch {
+    return json({ ready: false }, 503);
+  } finally { clearTimeout(timer); }
+}
+
 export async function recognize(request: Request, env: Env): Promise<Response> {
   const requestId = crypto.randomUUID();
   if (request.method !== 'POST') return error(requestId, 405, 'METHOD', '请使用上传入口。');
@@ -138,6 +176,10 @@ export default {
     if (path === '/api/recognize') {
       try { return await recognize(request, env); }
       catch { return error(crypto.randomUUID(), 503, 'UNAVAILABLE', '识别服务暂不可用。'); }
+    }
+    if (path === '/api/warmup') {
+      try { return await warmup(request, env); }
+      catch { return json({ ready: false }, 503); }
     }
     if (path.startsWith('/api/')) return error(crypto.randomUUID(), 404, 'NOT_FOUND', '接口不存在。');
     const asset = await env.ASSETS.fetch(request);
