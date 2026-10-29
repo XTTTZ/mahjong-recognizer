@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "downloadedAt": "2026-10-28T19:14:53.425711+00:00",
+  "assets": [
+    {
+      "localPath": "artifacts/models/pretrained/mobilenet_v3_large-5c1a4163.pth",
+      "path": "D:/mahjong/models/mobilenet_v3_large-5c1a4163.pth",
+      "sha256": "5c1a416349c4cf298f2a6a5e2600ed0ee55e604713578f5e74e6bc8bcaef7997",
+      "bytes": 22132113,
+      "source": "https://download.pytorch.org/models/mobilenet_v3_large-5c1a4163.pth",
+      "upstreamHashPrefix": "5c1a4163",
+      "architecture": "torchvision0.23 MobileNetV3-Large IMAGENET1K_V2",
+      "license": "BSD-3-Clause torchvision code; pretrained data terms separately apply",
+      "licenseSource": "https://raw.githubusercontent.com/pytorch/vision/v0.23.0/LICENSE",
+      "licenseFile": "artifacts/models/pretrained/torchvision-v0.23.0-LICENSE",
+      "licenseSha256": "6502f676851cfe25f8af75531dfb32375b7325b73c37e7b43741fa422893e71d"
+    }
+  ],
+  "trainingStarted": false,
+  "windowsTransferred": false
+}

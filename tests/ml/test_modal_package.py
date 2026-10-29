@@ -5,10 +5,25 @@ import sys
 import tempfile
 import unittest
 
-from infra.modal.package import prepare_upload
+from infra.modal.package import prepare_upload, prepare_source
 
 
 class UploadPackageTests(unittest.TestCase):
+    def test_build_source_is_an_immutable_snapshot_and_excludes_bytecode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); source=root/'source'; source.mkdir()
+            (source/'model.py').write_text('version=1\n')
+            (source/'__pycache__').mkdir(); (source/'__pycache__/model.pyc').write_bytes(b'bytecode')
+            frozen=prepare_source(source,root/'cache')
+            self.assertFalse((frozen/'__pycache__').exists())
+            (source/'model.py').write_text('version=2\n')
+            updated=prepare_source(source,root/'cache')
+            self.assertNotEqual(frozen,updated)
+            self.assertEqual((frozen/'model.py').read_text(),'version=1\n')
+            (updated/'model.py').write_text('tampered')
+            with self.assertRaisesRegex(ValueError,'source cache changed'):
+                prepare_source(source,root/'cache')
+
     def test_chunks_reassemble_exact_bytes_and_cache_rejects_damage(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory); source=root/'source'; source.mkdir()

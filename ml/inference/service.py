@@ -4,6 +4,8 @@ from email.parser import BytesParser
 from io import BytesIO
 import time
 import warnings
+import threading
+import sys
 from typing import Protocol
 
 from fastapi import FastAPI, HTTPException, Request
@@ -48,10 +50,24 @@ def decode_image(data: bytes) -> Image.Image:
 
 def create_app(predictor: Predictor, accept_threshold: float = 0.7) -> FastAPI:
     app = FastAPI(title="Mahjong inference", docs_url=None, redoc_url=None, openapi_url=None)
+    prediction_lock = threading.Lock()
+
+    def predict_one(image):
+        # A TensorRT execution context owns mutable bindings; serialize it.
+        # Multiple tiles in this photograph are still classified in batches.
+        with prediction_lock:
+            # Configure the HTTP worker too: the lifecycle/benchmark can run
+            # on another thread, including after snapshot restore.
+            torch = sys.modules.get('torch')
+            if torch is not None:
+                torch.set_num_threads(2)
+            return predictor.predict(image)
 
     @app.get("/health")
     def health():
-        return {"modelVersion": predictor.version, "loaded": True}
+        return {"modelVersion": predictor.version, "loaded": True,
+                "backend": getattr(predictor, 'runtime_backend', 'torch'),
+                "fastPreprocess": getattr(predictor, 'fast_preprocess', False)}
 
     @app.post("/recognize")
     async def recognize(request: Request):
@@ -73,17 +89,24 @@ def create_app(predictor: Predictor, accept_threshold: float = 0.7) -> FastAPI:
         file_parts = [p for p in parts if p.get_filename() is not None]
         if len(images) != 1 or len(file_parts) != 1 or file_parts[0] is not images[0]:
             raise HTTPException(400, "exactly one image required")
+        decode_started = time.perf_counter()
         image = decode_image(images[0].get_payload(decode=True) or b"")
-        raw = await run_in_threadpool(predictor.predict, image)
+        inference_started = time.perf_counter()
+        raw = await run_in_threadpool(predict_one, image)
+        post_started = time.perf_counter()
         if len(raw) > MAX_DETECTIONS:
             raise HTTPException(422, "scene too crowded; photograph one group of tiles")
         tiles, reasons = normalize_tiles(raw, image.width, image.height, accept_threshold)
         return {
             "requestId": request.headers.get("x-request-id", ""),
             "modelVersion": predictor.version,
+            "runtimeBackend": getattr(predictor, 'runtime_backend', 'torch'),
             "image": {"width": image.width, "height": image.height}, "tiles": tiles,
             "quality": {"status": "needs_retake" if reasons else "ok", "reasons": reasons},
-            "timings": {"totalMs": round((time.perf_counter() - started) * 1000, 1)},
+            "timings": {"totalMs": round((time.perf_counter() - started) * 1000, 1),
+                        "decodeMs": round((inference_started-decode_started)*1000, 1),
+                        "inferenceMs": round((post_started-inference_started)*1000, 1),
+                        "postprocessMs": round((time.perf_counter()-post_started)*1000, 1)},
         }
 
     return app

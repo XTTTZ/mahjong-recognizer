@@ -8,6 +8,8 @@
 
 计倍采用用户确认的“兼容牌型相加，按表排除重复项”；碰杠需声明已有实体牌，3倍起胡，中码最后乘算。照片不能确定海捞、杠开、门清等历史条件，需手动选择。来源转写与未明事项见 [规则解释](docs/rules/source-interpretation.md) 和 [实现口径](docs/rules/IMPLEMENTATION.md)，原始私人规则图片不随工程分发。
 
+GPU运行时可采用两阶段TensorRT FP16及Modal GPU Memory Snapshot；PIL裁剪几何保持训练规则，牌面整批传GPU规范化。完整valid运行时对照保持主指标72/82，内部p50约58→30ms；候选真实快照恢复约4.75秒，后续一次识别约1.16秒。样本与测量范围见[验证报告](docs/models/RUNTIME_20261029.md)，构建、上线和回退见[操作说明](infra/modal/OPTIMIZATION.md)。
+
 验证集至少10张牌的82张照片中，自动整手完全正确72张（87.8%）。仅在验证集锁定模型与阈值后进行一次封存测试：47张多牌照片中自动整手完全正确31张（66.0%），忽略置信度拒绝时模型全对35张（74.5%）。这些数据来自同一个公开来源的分组留出，不能保证陌生棋牌室的准确率。单张分类准确率不能替代整手识别率。
 
 ## 本地运行
@@ -41,6 +43,8 @@ npm run worker:dev
 参见 [数据卡](docs/data/DATASET_CARD.md)、[V4 划分与复现](docs/data/DATASET_V4.md)、[数据工具](ml/data/README.md)、[训练与评估](docs/models/YOLO_CASCADE.md)、[下一轮V6方案](docs/models/V6_REFINEMENT.md) 和 [Windows 后台队列](infra/windows/EXPERIMENT_QUEUE.md)。`ml/train`、`ml/eval` 和 `infra/windows` 包含训练、终止恢复、整手评估、模型导出及独立于 SSH 会话的串行执行器。环境和预训练下载固定版本与校验值；本机路径、账户和计划哈希需重新生成。V6使用历史签名父权重；其他安装应先运行基础训练生成自己的父run及receipt，不能绕过这些校验或把公开推理权重当作精确resume。
 
 训练与选阈值只使用 train/valid。封存测试已有使用记录，后续改进不得反复按其结果调参；应另采集独立手机场景作为新评测集。训练默认禁止镜像麻将文字。下一轮实验代码的存在不会自动启动训练，提交队列必须是用户明确发起的操作。
+
+[V7效率实验](docs/models/V7_EFFICIENCY.md)准备了12小时硬截止的11组队列：保留数据／检测器／分类器对照，增加MobileNetV3-Large监督与EffV2S教师蒸馏，以及仅train校准的CPU INT8对照。代码在本机准备不等于Windows已经就绪，开机同步后必须重新做路径、环境、父权重及数据签名预检。队列失败会转下一独立组，依赖失败的量化组跳过；没有从网站或部署过程自动训练。
 
 ## 许可
 

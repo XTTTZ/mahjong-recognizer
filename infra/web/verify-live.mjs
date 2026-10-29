@@ -1,4 +1,4 @@
-/** Verify the deployed phone flow. GPU invocation requires --recognize explicitly. */
+/** Verify deployed phone flow. GPU work requires --recognize or --warmup. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -12,16 +12,20 @@ const option = (name, fallback) => {
 const site = option('--url', 'https://mahjong.avalonxty.site');
 const image = option('--image');
 const recognize = args.includes('--recognize');
+const warmup = recognize || args.includes('--warmup');
 const proxy = option('--proxy');
 const expectedModel = option('--expect-model');
+const expectedBackend = option('--expect-backend');
 const out = path.resolve(option('--out', 'artifacts/web/live'));
 if (recognize && !image) throw new Error('--recognize requires a local --image');
 await fs.mkdir(out, { recursive: true });
 const browser = await chromium.launch({ headless: true, ...(proxy ? { proxy: { server: proxy } } : {}) });
-const report = { site, observedAt: new Date().toISOString(), gpuRequested: recognize, proxyUsed: Boolean(proxy),
+const report = { site, observedAt: new Date().toISOString(), gpuRequested: recognize || warmup,
+  recognitionRequested: recognize, pageWarmupAllowed: warmup, proxyUsed: Boolean(proxy),
   screens: [], browserErrors: [], consoleErrors: [], externalScripts: [], cspViolations: [], pageChecks: [], sourceOffers: [] };
 try {
   const context = await browser.newContext({ isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+  if (!warmup) await context.route('**/api/warmup', route => route.fulfill({ json: { ready: false, skippedByReadOnlyProbe: true } }));
   const healthResponse = await context.request.get(`${site}/api/health`);
   assert.equal(healthResponse.status(), 200);
   report.health = await healthResponse.json();
@@ -72,11 +76,13 @@ try {
         const value = await response.json();
         assert.equal(typeof value.modelVersion, 'string');
         if (expectedModel) assert.equal(value.modelVersion, expectedModel, 'The gateway must serve the intended released model');
+        if (expectedBackend) assert.equal(value.runtimeBackend, expectedBackend, 'The gateway must serve the verified runtime');
         assert.equal(Array.isArray(value.tiles), true);
         assert.equal(typeof value.image.width, 'number');
         await page.getByRole('region', { name: '识别结果' }).waitFor();
         assert.equal(calls, 1, 'A single click must send a single recognition request');
-        report.recognition = { requestId: value.requestId, modelVersion: value.modelVersion, tiles: value.tiles.length,
+        report.recognition = { requestId: value.requestId, modelVersion: value.modelVersion,
+          runtimeBackend: value.runtimeBackend, tiles: value.tiles.length,
           image: value.image, quality: value.quality, serviceMs: value.timings?.totalMs,
           elapsedMs: Date.now() - started, automaticRequests: calls };
         const originalScreen = 'recognition-original-390.png';

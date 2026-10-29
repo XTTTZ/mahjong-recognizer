@@ -31,6 +31,7 @@ def main():
     reviewed_public_metadata={'infra/windows/verified/v6/parent-assets.json',
                               'infra/windows/verified/v6/expected-environment.json',
                               'docs/models/release-20261027.json',
+                              'docs/models/student-assets-v7.json',
                               'docs/models/weight-privacy-audit-20261027.json',
                               'docs/deploy/WEB.md'}
     with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
@@ -62,6 +63,9 @@ def main():
             if name=='docs/models/V6_REFINEMENT.md':
                 text=text.replace('[逐图诊断记录](v6/failure-analysis.json)。',
                     '逐图诊断属于私有实验记录，不随公开源码分发；上文提供聚合错误类型。')
+            if name=='docs/models/V7_EFFICIENCY.md':
+                text=text.replace('[ready-v7.json](./ready-v7.json)及[runs/v7-12h-20261029.json](./runs/v7-12h-20261029.json)的实时收据',
+                    '本机动态ready/launch签名收据（不随公开源码分发）')
             if name.startswith('infra/windows/verified/') and name.endswith('.json'):
                 try:
                     value=json.loads(text)

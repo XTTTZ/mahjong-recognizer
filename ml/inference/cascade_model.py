@@ -75,6 +75,40 @@ class RawCascade:
             raise ValueError("Classifier checkpoint geometry/classes differ from the signed run")
         self.classifier.load_state_dict(saved["model"])
         self.classifier.to(device).eval()
+        self.fast_preprocess = False
+        self.runtime_backend = 'torch-bf16'
+
+    def enable_fast_preprocess(self):
+        import torch
+        # Constants are allocated once and restored with GPU memory snapshots.
+        self.mean = torch.tensor([.485, .456, .406], device=self.device)[None, :, None, None]
+        self.std = torch.tensor([.229, .224, .225], device=self.device)[None, :, None, None]
+        self.fast_preprocess = True
+
+    def crop_batch(self, image, detections):
+        import numpy as np
+        import torch
+        if not self.fast_preprocess:
+            return torch.stack([image_tensor(crop_face(image, d['bbox'], self.resolution, self.context))
+                                for d in detections]).to(self.device)
+        # Preserve the exact PIL bilinear crop/pad geometry used in training.
+        # Transfer one contiguous uint8 batch instead of many normalized float
+        # tiles, then normalize the full batch on the GPU in float32.
+        pixels = np.stack([np.asarray(crop_face(image, d['bbox'], self.resolution, self.context))
+                           for d in detections])
+        batch = torch.from_numpy(pixels).to(self.device).permute(0, 3, 1, 2).float().div_(255.)
+        return batch.sub_(self.mean).div_(self.std).contiguous()
+
+    def warmup(self):
+        import torch
+        from PIL import Image
+        self.detector.predict(Image.new('RGB', (960, 640), (114, 114, 114)))
+        for count in (1, 14, 32):
+            batch = torch.zeros(count, 3, self.resolution, self.resolution, device=self.device)
+            with torch.inference_mode(), torch.autocast('cuda', dtype=torch.bfloat16,
+                    enabled=self.device == 'cuda' and self.runtime_backend != 'tensorrt-fp16'):
+                self.classifier(batch)
+        if self.device == 'cuda': torch.cuda.synchronize()
 
     def predict(self, image):
         import torch
@@ -86,9 +120,9 @@ class RawCascade:
         outputs = []
         # Bound crop batches for large scenes; no detections are silently dropped.
         for start in range(0, len(detections), 32):
-            batch = torch.stack([image_tensor(crop_face(image, d["bbox"], self.resolution, self.context))
-                                 for d in detections[start:start+32]]).to(self.device)
-            with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16, enabled=self.device == "cuda"):
+            batch = self.crop_batch(image, detections[start:start+32])
+            with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16,
+                    enabled=self.device == "cuda" and self.runtime_backend != 'tensorrt-fp16'):
                 values = self.classifier(batch).float().softmax(-1).cpu().tolist()
             outputs.extend(values)
         return combine_tiles(detections, outputs, self.classes)

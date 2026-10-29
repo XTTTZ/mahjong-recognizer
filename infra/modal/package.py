@@ -4,6 +4,25 @@ import json
 from pathlib import Path
 import shutil
 
+
+def prepare_source(source, cache_root):
+    """Freeze source bytes before a long GPU image build, outside live edits."""
+    source = Path(source)
+    files = {str(p.relative_to(source)): p.read_bytes() for p in sorted(source.rglob('*'))
+             if p.is_file() and not p.is_symlink() and '__pycache__' not in p.parts and p.suffix != '.pyc'}
+    digest = hashlib.sha256()
+    for name, data in files.items():
+        digest.update(name.encode()); digest.update(b'\0'); digest.update(hashlib.sha256(data).digest())
+    out = Path(cache_root)/digest.hexdigest()
+    if out.exists():
+        if any(not (out/name).is_file() or (out/name).read_bytes() != data for name, data in files.items()):
+            raise ValueError('Frozen source cache changed')
+        return out
+    out.mkdir(parents=True)
+    for name, data in files.items():
+        path = out/name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(data)
+    return out
+
 ASSEMBLER = '''from pathlib import Path
 import hashlib,json,shutil
 root=Path('/model-upload'); target=Path('/model'); target.mkdir(exist_ok=True)
