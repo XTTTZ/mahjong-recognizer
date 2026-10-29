@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeHand, calculateScore, scoreHand, type DeclaredMeld, type RuleOptionId } from '../src/scoring';
+import { analyzeCompatibility, analyzeHand, analyzeWaitingHand, calculateScore, scoreHand, type DeclaredMeld, type RuleOptionId } from '../src/scoring';
 
 function tiles(notation: string): string[] {
   return [...notation.matchAll(/([1-9]+)([mpsz])/g)].flatMap(([, digits, suit]) => [...digits].map(n => n + suit));
@@ -41,6 +41,157 @@ describe('physical hand validation and standard decomposition', () => {
     expect(result.analysis.physicalTileCount).toBe(15); expect(result.analysis.expectedTileCount).toBe(15);
     expect(result.analysis.decompositions[0].melds.filter(m => m.declared)).toHaveLength(2);
     expect(result.handMultiplier).toBe(3);
+  });
+});
+
+describe('one physical tile away, without assumed context or code bonuses', () => {
+  it('keeps an ordinary structural wait at zero with a visible three-point condition', () => {
+    const result = analyzeWaitingHand({ tiles: tiles('123m456m789p123s5z'), winMethod: 'self-draw' });
+    expect(result.status).toBe('waiting'); expect(result.requiredTileCount).toBe(13);
+    expect(result.candidates.map(c => c.tile)).toEqual(['5z']);
+    const candidate = result.candidates[0];
+    expect(candidate.structuralWinning).toBe(true); expect(candidate.baseMultiplier).toBe(0);
+    expect(candidate.meetsMinimum).toBe(false); expect(candidate.patterns).toEqual([]);
+    expect(candidate.conditionHints.join(' ')).toContain('未满3倍');
+    expect(candidate.conditionHints.join(' ')).toContain('未自动加3倍');
+  });
+  it('ignores stale winningTile and unrelated selected/code/table fields without mutating the input', () => {
+    const input = { tiles: tiles('123m456m789p123s5z'), winningTile: '9m',
+      selected: ['concealed-hand', 'heavenly-hand'], codeHits: 9, tableBonus: 99 };
+    const before = JSON.stringify(input), result = analyzeWaitingHand(input);
+    expect(result.candidates[0].tile).toBe('5z'); expect(result.candidates[0].baseMultiplier).toBe(0);
+    expect(JSON.stringify(input)).toBe(before);
+  });
+  it('enumerates a three-sided wait rather than just the first standard decomposition', () => {
+    const result = analyzeWaitingHand({ tiles: tiles('123m123p123s4567s') });
+    expect(result.candidates.map(c => c.tile)).toEqual(['1s', '4s', '7s']);
+    expect(result.candidates.every(c => c.baseMultiplier === 0 && !c.meetsMinimum)).toBe(true);
+  });
+  it('never offers a fifth copy, including copies present in declared groups', () => {
+    const result = analyzeWaitingHand({ tiles: tiles('1111m234m567m899m') });
+    expect(result.candidates.map(c => c.tile)).toEqual(['3m', '6m', '9m']);
+    expect(result.candidates.some(c => c.tile === '1m')).toBe(false);
+  });
+  it.each([
+    ['1122m3344p5566s7z', '7z', 4, 'seven-pairs'],
+    ['1111m22p33p44s55s6z', '6z', 8, 'luxury-seven-pairs'],
+    ['1111m2222p33s44s5z', '5z', 16, 'double-luxury-seven-pairs'],
+    ['1111z2222z3333z4z', '4z', 68, 'triple-luxury-seven-pairs'],
+  ] as const)('recognizes the tile-only seven-pairs tier in %s', (hand, winningTile, value, patternId) => {
+    const result = analyzeWaitingHand({ tiles: tiles(hand) });
+    expect(result.candidates.map(c => c.tile)).toEqual([winningTile]);
+    expect(result.candidates[0].baseMultiplier).toBe(value);
+    expect(result.candidates[0].patterns.map(p => p.id)).toContain(patternId);
+    expect(result.candidates[0].meetsMinimum).toBe(true);
+  });
+  it('enumerates all thirteen orphan waits without automatically awarding the flying bonus', () => {
+    const result = analyzeWaitingHand({ tiles: tiles('19m19p19s1234567z'), winMethod: 'rob-concealed-kong' });
+    expect(result.candidates.map(c => c.tile)).toEqual(['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z', '5z', '6z', '7z']);
+    expect(result.candidates.every(c => c.baseMultiplier === 13)).toBe(true);
+  });
+  it('recognizes the single missing orphan and nine-sided nine-gates wait at base24', () => {
+    expect(analyzeWaitingHand({ tiles: tiles('119m19p19s123456z') }).candidates.map(c => c.tile)).toEqual(['7z']);
+    const result = analyzeWaitingHand({ tiles: tiles('1112345678999m') });
+    expect(result.candidates.map(c => c.tile)).toEqual(['1m', '2m', '3m', '4m', '5m', '6m', '7m', '8m', '9m']);
+    expect(result.candidates.every(c => c.baseMultiplier === 24 && c.patterns.some(p => p.id === 'nine-gates'))).toBe(true);
+  });
+  it('respects rob-concealed-kong instead of projecting ordinary waits as legal', () => {
+    const result = analyzeWaitingHand({ tiles: tiles('123m456m789p123s5z'), winMethod: 'rob-concealed-kong' });
+    expect(result.status).toBe('no-waits'); expect(result.candidates).toEqual([]);
+    expect(result.issues.join(' ')).toContain('十三幺');
+  });
+  it('accounts for one or multiple explicitly declared kongs in the waiting physical count', () => {
+    for (const [hand, melds, count] of [
+      ['1111m222p333s444z5z', [{ kind: 'concealed-kong', tile: '1m' }], 14],
+      ['1111m2222p333s444z5z', [{ kind: 'exposed-kong', tile: '1m' }, { kind: 'concealed-kong', tile: '2p' }], 15],
+    ] as const) {
+      const result = analyzeWaitingHand({ tiles: tiles(hand), melds });
+      expect(result.status).toBe('waiting'); expect(result.requiredTileCount).toBe(count);
+      expect(result.candidates.map(c => c.tile)).toEqual(['5z']); expect(result.candidates[0].baseMultiplier).toBe(3);
+    }
+    const four = analyzeWaitingHand({ tiles: tiles('1111m2222p3333s4444z5z'),
+      melds: ['1m', '2p', '3s', '4z'].map(tile => ({ kind: 'concealed-kong', tile })) });
+    expect(four.requiredTileCount).toBe(17); expect(four.candidates[0].baseMultiplier).toBe(32);
+  });
+  it('subtracts a declared pung and does not suggest menqing to an open ordinary hand', () => {
+    const result = analyzeWaitingHand({ tiles: tiles('111m234m456p789s5z'), melds: [{ kind: 'pung', tile: '1m' }] });
+    expect(result.candidates.map(c => c.tile)).toEqual(['5z']); expect(result.candidates[0].baseMultiplier).toBe(0);
+    expect(result.candidates[0].conditionHints.join(' ')).not.toContain('可自行确认门清');
+  });
+  it('includes the known three-dragon mixed-pungs plus3 in candidate base and its evidence', () => {
+    const result = analyzeWaitingHand({ tiles: tiles('111m222m555z666z7z') });
+    const candidate = result.candidates.find(c => c.tile === '7z')!;
+    expect(candidate.baseMultiplier).toBe(12);
+    expect(candidate.patterns.map(p => p.id)).toEqual(['little-three-dragons', 'three-dragons-mixed-pungs']);
+  });
+  it.each(['1h', 'back', '8z'])('does not produce waits for invalid tile %s', invalid => {
+    const result = analyzeWaitingHand({ tiles: [...tiles('123m456m789p123s'), invalid] });
+    expect(result.status).toBe('invalid'); expect(result.candidates).toEqual([]);
+  });
+  it('rejects fifth copies and invalid declarations, and only accepts exactly one missing tile', () => {
+    expect(analyzeWaitingHand({ tiles: tiles('11111m234p567s55z') }).status).toBe('invalid');
+    expect(analyzeWaitingHand({ tiles: tiles('123m123p123s4567s'), melds: [{ kind: 'pung', tile: '1m' }] }).status).toBe('invalid');
+    expect(analyzeWaitingHand({ tiles: tiles('123m456m789p123s') }).status).toBe('not-one-away');
+    expect(analyzeWaitingHand({ tiles: tiles('123m456m789p123s55z') }).status).toBe('not-one-away');
+    expect(analyzeWaitingHand({ tiles: tiles('1111m222p333s444z55z') }).status).toBe('invalid');
+    expect(analyzeWaitingHand({ tiles: tiles('123456789m1357p') }).status).toBe('no-waits');
+  });
+});
+
+describe('selection-aware compatibility and correctable declarations', () => {
+  const option = (hand: string, id: RuleOptionId, selected: RuleOptionId[] = [], melds: DeclaredMeld[] = []) =>
+    analyzeCompatibility(analyzeHand({ tiles: tiles(hand), melds }), selected).availableOptions.find(o => o.id === id)!;
+  it('disables menqing for pure seven-pairs and for the final seven-pairs route of an ambiguous hand', () => {
+    expect(option('1111m22p33p44s55s66z', 'concealed-hand').eligible).toBe(false);
+    const ambiguous = analyzeHand({ tiles: tiles('11112222333344m') });
+    expect(ambiguous.decompositions.length).toBeGreaterThan(0);
+    expect(ambiguous.sevenPairsQuadCount).toBe(3);
+    expect(ambiguous.availableOptions.find(o => o.id === 'concealed-hand')?.eligible).toBe(true);
+    const projected = analyzeCompatibility(ambiguous).availableOptions.find(o => o.id === 'concealed-hand')!;
+    expect(projected.eligible).toBe(false); expect(projected.reason).toContain('七对');
+  });
+  it('prevents adding four-concealed and menqing in either order, preserving stale choices for caller correction', () => {
+    const hand = '111m222p333s444z55z';
+    expect(option(hand, 'concealed-hand', ['four-concealed-triplets']).eligible).toBe(false);
+    expect(option(hand, 'four-concealed-triplets', ['concealed-hand']).eligible).toBe(false);
+    expect(option(hand, 'four-concealed-single-wait', ['concealed-hand']).eligible).toBe(false);
+    const selected: RuleOptionId[] = ['four-concealed-triplets', 'concealed-hand'];
+    const before = JSON.stringify(selected); analyzeCompatibility(analyzeHand({ tiles: tiles(hand) }), selected);
+    expect(JSON.stringify(selected)).toBe(before);
+  });
+  it('exposes heavenly/earthly mutual exclusion and open/concealed-kong distinctions', () => {
+    expect(option('123m456m789p123s55z', 'earthly-hand', ['heavenly-hand']).eligible).toBe(false);
+    expect(option('123m456m789p123s55z', 'heavenly-hand', ['earthly-hand']).eligible).toBe(false);
+    expect(option('1111m222p333s444z55z', 'four-concealed-triplets', [], [{ kind: 'exposed-kong', tile: '1m' }]).eligible).toBe(false);
+    expect(option('1111m222p333s444z55z', 'four-concealed-triplets', [], [{ kind: 'concealed-kong', tile: '1m' }]).eligible).toBe(true);
+    expect(option('111m222p333s444z55z', 'concealed-hand', [], [{ kind: 'pung', tile: '1m' }]).eligible).toBe(false);
+  });
+  it('allows a real pung declaration to switch an ambiguous luxury hand to a standard interpretation', () => {
+    const hand = '11112222333344m', analysis = analyzeHand({ tiles: tiles(hand) });
+    const choice = analyzeCompatibility(analysis).meldChoices.find(m => m.kind === 'pung' && m.tile === '1m')!;
+    expect(choice.eligible).toBe(true); expect(choice.notes.join(' ')).toContain('七对');
+    const declared = analyzeHand({ tiles: tiles(hand), melds: [{ kind: 'pung', tile: '1m' }] });
+    expect(declared.status).toBe('winning'); expect(declared.sevenPairsQuadCount).toBeNull();
+    expect(calculateScore(declared).patterns.map(p => p.id)).not.toContain('triple-luxury-seven-pairs');
+  });
+  it('does not label a pure luxury quartet as a legal kong when it cannot form the standard route', () => {
+    const choices = analyzeCompatibility(analyzeHand({ tiles: tiles('1111m22p33p44s55s66z') })).meldChoices;
+    expect(choices.find(c => c.tile === '1m' && c.kind === 'concealed-kong')?.eligible).toBe(false);
+    expect(choices.find(c => c.tile === '1m' && c.kind === 'pung')?.eligible).toBe(false);
+  });
+  it('keeps actual undeclared-kong corrections available and accounts for already consumed entities', () => {
+    const repair = analyzeCompatibility(analyzeHand({ tiles: tiles('1111m222p333s444z55z') }));
+    expect(repair.meldChoices.find(c => c.tile === '1m' && c.kind === 'concealed-kong')?.eligible).toBe(true);
+    const used = analyzeCompatibility(analyzeHand({ tiles: tiles('111m222p333s444z55z'), melds: [{ kind: 'pung', tile: '1m' }] }));
+    expect(used.meldChoices.find(c => c.tile === '1m' && c.kind === 'pung')?.remaining).toBe(0);
+    expect(used.meldChoices.find(c => c.tile === '1m' && c.kind === 'pung')?.eligible).toBe(false);
+    expect(used.meldChoices.find(c => c.tile === '2p' && c.kind === 'exposed-kong')?.eligible).toBe(false);
+  });
+  it('requires correction of unsupported entities or existing invalid declarations before adding groups', () => {
+    const invalid = analyzeCompatibility(analyzeHand({ tiles: [...tiles('111m222p333s444z5z'), 'back'] }));
+    expect(invalid.meldChoices.every(c => !c.eligible)).toBe(true);
+    const missing = analyzeCompatibility(analyzeHand({ tiles: tiles('111m222p333s444z55z'), melds: [{ kind: 'exposed-kong', tile: '1m' }] }));
+    expect(missing.meldChoices.every(c => !c.eligible)).toBe(true);
   });
 });
 

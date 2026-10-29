@@ -26,6 +26,22 @@ export interface ScoreResult {
   handMultiplier: number; codeMultiplier: number; finalMultiplier: number; patterns: PatternMatch[];
   exclusions: ExclusionEvidence[]; issues: string[]; warnings: string[]; formula: string; belowMinimum: boolean;
 }
+export interface WaitingTileCandidate {
+  tile: CanonicalTile; structuralWinning: true; patterns: PatternMatch[];
+  /** All tile-only compatible value, including structural 三元另成混碰+3; no context/codes/table bonus. */
+  baseMultiplier: number; meetsMinimum: boolean; conditionHints: string[]; exclusions: ExclusionEvidence[];
+}
+export interface WaitingHandAnalysis {
+  status: 'invalid' | 'not-one-away' | 'no-waits' | 'waiting'; issues: string[];
+  physicalTileCount: number; requiredTileCount: number; candidates: WaitingTileCandidate[];
+}
+export interface MeldDeclarationAvailability {
+  kind: MeldKind; tile: CanonicalTile; required: number; remaining: number;
+  eligible: boolean; reason?: string; notes: string[];
+}
+export interface HandCompatibility {
+  availableOptions: RuleOptionAvailability[]; meldChoices: MeldDeclarationAvailability[]; restrictions: string[];
+}
 export const RULES_VERSION = 'gd-136-attached-table-compatible-sum-v1';
 export const CANONICAL_TILES: readonly CanonicalTile[] = [
   ...(['m', 'p', 's'] as const).flatMap(suit => Array.from({ length: 9 }, (_, i) => `${i + 1}${suit}` as CanonicalTile)),
@@ -342,5 +358,110 @@ export function calculateScore(analysis: HandAnalysis, options: ScoreOptions = {
   best.analysis = analysis;
   if (scoringViews(analysis).length > 1) best.warnings.push('此手有多种合法分解；按最高兼容的一种结构计算，不混加标准分解与七对专属项。');
   return best;
+}
+
+/** Enumerate one physical missing tile, with the current method but no guessed history. */
+export function analyzeWaitingHand(input: ScoringHandInput): WaitingHandAnalysis {
+  // A previously selected winning tile belongs to the completed hand. For a
+  // waiting hand the enumerated new tile is the winning tile, even if absent now.
+  const waitingInput: ScoringHandInput = { tiles: input.tiles, melds: input.melds, winMethod: input.winMethod };
+  const analysis = analyzeHand(waitingInput);
+  const result: WaitingHandAnalysis = {
+    status: 'invalid', issues: [], physicalTileCount: analysis.physicalTileCount,
+    requiredTileCount: analysis.expectedTileCount - 1, candidates: [],
+  };
+  if (analysis.status === 'invalid') { result.issues = [...analysis.issues]; return result; }
+  if (analysis.physicalTileCount !== result.requiredTileCount) {
+    result.status = 'not-one-away';
+    result.issues.push(`听牌分析需${result.requiredTileCount}张实体牌（13＋已声明杠数），当前为${analysis.physicalTileCount}张；请先补齐或核对碰杠。`);
+    return result;
+  }
+  for (const tile of CANONICAL_TILES) {
+    // Counts include every physical tile in declared groups, not only the
+    // remaining concealed hand. A fifth copy cannot be a waiting candidate.
+    if (analysis.counts[tile] >= 4) continue;
+    const completed = analyzeHand({ ...waitingInput, tiles: [...analysis.input.tiles, tile], winningTile: tile });
+    if (completed.status !== 'winning') continue;
+    const bare = calculateScore(completed);
+    const structuralAdditions = bare.additions.map(({ id, label, multiplier, evidence }) => ({ id, label, multiplier, evidence: [...evidence] }));
+    const baseMultiplier = bare.handMultiplier;
+    result.candidates.push({ tile, structuralWinning: true,
+      patterns: [...bare.patterns, ...structuralAdditions], baseMultiplier,
+      meetsMinimum: baseMultiplier >= 3,
+      conditionHints: baseMultiplier < 3
+        ? [`牌面可组成和牌结构，但基础${baseMultiplier}倍未满3倍；须实际符合并确认允许的特殊条件，中码不能凑起胡。`,
+          ...(completed.availableOptions.some(o => o.id === 'concealed-hand' && o.eligible)
+            ? ['如实际未有碰/明杠，可自行确认门清；这里未自动加3倍。'] : [])]
+        : [],
+      exclusions: bare.exclusions.map(item => ({ ...item })),
+    });
+  }
+  result.status = result.candidates.length ? 'waiting' : 'no-waits';
+  if (!result.candidates.length) result.issues.push(analysis.input.winMethod === 'rob-concealed-kong'
+    ? '当前牌面补一张后不满足十三幺；本表只有十三幺允许抢暗杠。'
+    : '当前实体牌与碰杠声明补一张后，没有符合本表和牌结构的牌。');
+  return result;
+}
+
+/** Selection-aware explanations for the UI; declarations remain user-correctable. */
+export function analyzeCompatibility(analysis: HandAnalysis, selected: readonly RuleOptionId[] = []): HandCompatibility {
+  const selectedSet = new Set(selected), baseOptions = aggregateOptions(analysis);
+  const result: HandCompatibility = { availableOptions: [], meldChoices: [], restrictions: [] };
+  result.availableOptions = baseOptions.map(option => {
+    let reason = option.reason;
+    if (option.eligible) {
+      if ((option.id === 'heavenly-hand' && selectedSet.has('earthly-hand'))
+          || (option.id === 'earthly-hand' && selectedSet.has('heavenly-hand'))) reason = '天胡与地胡互斥，不能同时选择。';
+      else if (option.id.startsWith('four-concealed') && selectedSet.has('concealed-hand')
+          && baseOptions.some(o => o.id === 'concealed-hand' && o.eligible)) reason = '四暗刻与门清不叠加；请先取消门清，再按实际牌局确认四暗刻。';
+      else if (option.id === 'concealed-hand' && (selectedSet.has('four-concealed-triplets') || selectedSet.has('four-concealed-single-wait'))
+          && baseOptions.some(o => o.id === 'four-concealed-triplets' && o.eligible)) reason = '表内：四暗刻不计门清。';
+      else {
+        // Eligibility in one interpretation does not make a bonus compatible
+        // with another interpretation that wins the final calculation. Check
+        // its actual counterfactual result, rather than unioning route bonuses.
+        const proposed = calculateScore(analysis, { selected: [...selectedSet, option.id] });
+        const awarded = proposed.patterns.some(p => p.id === option.id) || proposed.additions.some(p => p.id === option.id);
+        if (!awarded) reason = proposed.exclusions.find(item => item.excludedId === option.id)?.reason;
+      }
+    }
+    return { ...option, eligible: option.eligible && !reason, ...(reason ? { reason } : {}) };
+  });
+
+  const counts = new Map<string, number>();
+  for (const tile of analysis.input.tiles) counts.set(tile, (counts.get(tile) ?? 0) + 1);
+  const remaining = new Map(counts), melds = analysis.input.melds ?? [];
+  let declarationIssue: string | undefined;
+  if ([...counts].some(([tile, count]) => !tileSet.has(tile) || count > 4)) declarationIssue = '请先修正花牌、牌背、无效牌值或超过4张的牌。';
+  if (melds.length > 4) declarationIssue = '已超过四副碰杠，请先移除错误声明。';
+  for (const meld of melds) {
+    const needed = meld.kind === 'pung' ? 3 : 4;
+    if (!tileSet.has(meld.tile) || !['pung', 'exposed-kong', 'concealed-kong'].includes(meld.kind)
+        || (remaining.get(meld.tile) ?? 0) < needed) declarationIssue = '已有碰杠声明与实体牌不符，请先修正或移除。';
+    else remaining.set(meld.tile, (remaining.get(meld.tile) ?? 0) - needed);
+  }
+  const pairRoute = analysis.sevenPairsQuadCount !== null;
+  for (const kind of ['pung', 'exposed-kong', 'concealed-kong'] as const) for (const tile of CANONICAL_TILES) {
+    const required = kind === 'pung' ? 3 : 4, count = Math.max(0, remaining.get(tile) ?? 0);
+    let reason = declarationIssue;
+    if (!reason && melds.length >= 4) reason = '最多声明四副碰杠，请先移除或修正已有分组。';
+    if (!reason && count < required) reason = `未分组的${tile}只有${count}张，${kind === 'pung' ? '碰' : '杠'}需要${required}张实体牌。`;
+    if (!reason && analysis.status === 'winning') {
+      const prospective: ScoringHandInput = { ...analysis.input, melds: [...melds, { kind, tile }] };
+      const declared = analyzeHand(prospective);
+      if (declared.status !== 'winning' && !analyzeWaitingHand(prospective).candidates.length)
+        reason = '这项声明不能保留当前和牌或形成差一张的标准结构；请先核对/更正实体牌，不可把七对四张直接算杠。';
+    }
+    result.meldChoices.push({ kind, tile, required, remaining: count, eligible: !reason, ...(reason ? { reason } : {}),
+      notes: pairRoute ? ['新增任何碰/杠声明后，七对及豪华七对系列不再适用；仍会重新检查标准刻顺将分解。'] : [] });
+  }
+  if (pairRoute || melds.length) result.restrictions.push('七对及豪华七对系列不能有任何碰/明杠/暗杠声明，也不叠加门清。实际有副露时请修正声明并重新计算标准结构。');
+  if (analysis.thirteenOrphans) result.restrictions.push('十三幺不能有碰杠声明，也不叠加门清。');
+  if (melds.some(m => m.kind !== 'concealed-kong')) result.restrictions.push('已声明碰/明杠，门清与四暗刻不可选；暗杠本身不等于明杠。');
+  if (selectedSet.has('four-concealed-triplets') || selectedSet.has('four-concealed-single-wait')) result.restrictions.push('四暗刻与门清不重复计入；四暗刻和单骑仍须确认真实和牌经过。');
+  if (selectedSet.has('heavenly-hand') || selectedSet.has('earthly-hand')) result.restrictions.push('天胡与地胡互斥。');
+  if (analysis.input.winMethod === 'rob-concealed-kong') result.restrictions.push('本表只允许十三幺抢暗杠。');
+  if (declarationIssue) result.restrictions.push(declarationIssue);
+  return result;
 }
 export function scoreHand(input: ScoringHandInput, options: ScoreOptions = {}): ScoreResult { return calculateScore(analyzeHand(input), options); }

@@ -69,30 +69,211 @@ test('320px: manual menqing reaches three, codes multiply locally, ordinary self
   await panel.screenshot({ path: 'artifacts/web/scoring/panel-320.png' });
 });
 
-test('390px: meld declarations consume existing physical tiles and never invent missing kong tiles', async ({ page }) => {
+test('390px: only sufficient ungrouped faces can be declared and used tiles disappear', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const api = await mockHand(page);
   await page.goto('/');
   await upload(page);
   const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
   await panel.locator('summary').filter({ hasText: /^碰杠/ }).click();
+  const faces = panel.getByLabel('分组牌面', { exact: true });
+  await expect(faces.locator('option')).toHaveText(['一万（未分组3张）']);
+  await expect(faces.locator('option[value="5z"]')).toHaveCount(0);
   await panel.getByRole('button', { name: '明杠', exact: true }).click();
-  await panel.getByLabel('分组牌面', { exact: true }).selectOption('5z');
-  await panel.getByRole('button', { name: '声明明杠', exact: true }).click();
-  await expect(panel.getByRole('alert')).toContainText('需要4张白板');
-  await expect(panel.getByRole('alert')).toContainText('只有2张');
+  await expect(faces).toBeDisabled();
+  await expect(faces).toHaveValue('');
+  await expect(faces.locator('option')).toHaveText(['暂无可声明牌面']);
+  await expect(panel.getByRole('button', { name: '声明明杠', exact: true })).toBeDisabled();
+  await expect(panel.getByText('当前没有未分组满4张的牌，不能声明明杠。', { exact: true })).toBeVisible();
   await expect(panel.getByRole('list', { name: '已声明碰杠' })).toHaveCount(0);
   await panel.getByRole('button', { name: '碰', exact: true }).click();
   await panel.getByLabel('分组牌面', { exact: true }).selectOption('1m');
   await panel.getByRole('button', { name: '声明碰', exact: true }).click();
   await expect(panel.getByRole('list', { name: '已声明碰杠' })).toContainText('碰 · 一万 ×3');
+  await expect(faces.locator('option[value="1m"]')).toHaveCount(0);
+  await expect(panel.getByRole('button', { name: '声明碰', exact: true })).toBeDisabled();
   await expect(page.locator('.tile-button')).toHaveCount(14);
   await panel.locator('summary').filter({ hasText: /^特殊情况/ }).click();
   await expect(panel.getByRole('checkbox', { name: '门清', exact: true })).toBeDisabled();
   await panel.getByRole('button', { name: '删除第1组碰', exact: true }).click();
   await expect(panel.getByRole('checkbox', { name: '门清', exact: true })).toBeEnabled();
+  await expect(faces.locator('option')).toHaveText(['一万（未分组3张）']);
   expect(api.calls()).toBe(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('320px: live one-away candidates keep a zero-base wait conditional despite historical selections and code hits', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  const api = await mockHand(page);
+  await page.goto('/');
+  await upload(page);
+  const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
+  await panel.locator('summary').filter({ hasText: /^特殊情况/ }).click();
+  await panel.getByRole('checkbox', { name: '天胡', exact: true }).check();
+  await panel.locator('summary').filter({ hasText: /^中码/ }).click();
+  await panel.getByLabel('中码数', { exact: true }).fill('2');
+  await expect(panel.getByTestId('score-total')).toHaveText('150');
+  await page.locator('.tile-button').last().click();
+  await page.getByRole('button', { name: '删除这张牌', exact: true }).click();
+  const waits = panel.getByRole('region', { name: '听牌候选', exact: true });
+  await expect(waits).toBeVisible();
+  await expect(panel.getByRole('alert')).toHaveCount(0);
+  await expect(waits.getByRole('list', { name: '基础已满3倍', exact: true })).toHaveCount(0);
+  const conditional = waits.getByRole('list', { name: '需特殊条件，基础不足3倍', exact: true });
+  await expect(conditional.locator('[data-tile="5z"]')).toContainText('白板');
+  await expect(conditional.locator('[data-tile="5z"]')).toContainText('基础0倍');
+  await expect(waits.getByText('不足3倍的候选不能直接胡。', { exact: false })).toBeVisible();
+  await page.getByRole('button', { name: '＋ 添加麻将牌', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: '白板', exact: true }).click();
+  await page.getByRole('button', { name: '完成补牌', exact: true }).click();
+  await expect(waits).toHaveCount(0);
+  expect(api.calls()).toBe(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await fs.mkdir('artifacts/web/scoring', { recursive: true });
+  // Return to 13 tiles for a readable conditional-wait screenshot.
+  await page.locator('.tile-button').last().click();
+  await page.getByRole('button', { name: '删除这张牌', exact: true }).click();
+  await panel.screenshot({ path: 'artifacts/web/scoring/waits-conditional-320.png' });
+});
+
+test('390px: a declared kong uses physical tiles and produces 13-plus-kong base-qualified waits', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const cards = ['1m', '1m', '1m', '1m', '2p', '2p', '2p', '3s', '3s', '3s', '4m', '4m', '4m', '5z'];
+  const api = await mockHand(page, cards);
+  await page.goto('/');
+  await upload(page);
+  const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
+  await panel.locator('summary').filter({ hasText: /^碰杠/ }).click();
+  await panel.getByRole('button', { name: '暗杠', exact: true }).click();
+  await expect(panel.getByLabel('分组牌面', { exact: true }).locator('option')).toHaveText(['一万（未分组4张）']);
+  await panel.getByRole('button', { name: '声明暗杠', exact: true }).click();
+  const waits = panel.getByRole('region', { name: '听牌候选', exact: true });
+  await expect(waits.getByText('当前14张 · 再进1张', { exact: true })).toBeVisible();
+  const qualified = waits.getByRole('list', { name: '基础已满3倍', exact: true });
+  await expect(qualified.locator('[data-tile="5z"]')).toContainText('白板');
+  await expect(qualified.locator('[data-tile="5z"]')).toContainText('基础3倍');
+  await expect(qualified.locator('[data-tile="5z"]')).toContainText('碰碰胡');
+  await expect(waits.locator('[data-tile="1m"]')).toHaveCount(0);
+  await expect(panel.getByLabel('分组牌面', { exact: true }).locator('option[value="1m"]')).toHaveCount(0);
+  await expect(page.locator('.tile-button')).toHaveCount(14);
+  expect(api.calls()).toBe(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await panel.screenshot({ path: 'artifacts/web/scoring/waits-kong-390.png' });
+});
+
+test('430px: seven-pairs interpretation permits real meld correction, while incompatible bonuses cannot be reselected', async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 844 });
+  const luxury = ['1m', '1m', '1m', '1m', '2m', '2m', '3m', '3m', '4m', '4m', '5m', '5m', '6m', '6m'];
+  const api = await mockHand(page, luxury);
+  await page.goto('/');
+  await upload(page);
+  const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
+  await panel.locator('summary').filter({ hasText: /^特殊情况/ }).click();
+  await expect(panel.getByRole('checkbox', { name: '门清', exact: true })).toBeDisabled();
+  await panel.locator('summary').filter({ hasText: /^碰杠/ }).click();
+  await panel.getByRole('button', { name: '暗杠', exact: true }).click();
+  await expect(panel.getByRole('button', { name: '声明暗杠', exact: true })).toBeEnabled();
+  await expect(panel.locator('p.scoring-hint').filter({ hasText: /七对.*不能有任何/ })).toBeVisible();
+  await panel.getByRole('button', { name: '声明暗杠', exact: true }).click();
+  await expect(panel.locator('.scoring-breakdown')).toHaveCount(0);
+  await expect(panel.getByRole('checkbox', { name: '门清', exact: true })).toBeDisabled();
+  await expect(panel.getByRole('region', { name: '听牌候选', exact: true })).toBeVisible();
+  await panel.getByRole('button', { name: '删除第1组暗杠', exact: true }).click();
+  await expect(panel.locator('.scoring-breakdown')).toContainText('豪华七对');
+  expect(api.calls()).toBe(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('430px: thirteen-orphans waits draw tile faces and fold the long list without overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 844 });
+  const orphanTiles = ['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z', '5z', '6z', '7z'];
+  const api = await mockHand(page, orphanTiles);
+  await page.goto('/');
+  await upload(page);
+  const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
+  const waits = panel.getByRole('region', { name: '听牌候选', exact: true });
+  await expect(waits.getByRole('list', { name: '基础已满3倍', exact: true }).locator('li')).toHaveCount(6);
+  await expect(waits.locator('[data-tile="1m"]')).toContainText('十三幺');
+  await expect(waits.locator('[data-tile="1m"] .tile-face')).toHaveCount(1);
+  await waits.getByText('查看其余7种候选', { exact: true }).click();
+  await expect(waits.locator('li:visible')).toHaveCount(13);
+  await expect(waits.getByRole('list', { name: '基础已满3倍 · 更多', exact: true })).toBeVisible();
+  expect(api.calls()).toBe(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await panel.screenshot({ path: 'artifacts/web/scoring/waits-orphans-430.png' });
+});
+
+test('430px: a hand with both seven-pair and standard routes can declare an actual pung and stop scoring seven pairs', async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 844 });
+  const dualRoute = ['1m', '1m', '1m', '1m', '2m', '2m', '2m', '2m', '3m', '3m', '3m', '3m', '4m', '4m'];
+  const api = await mockHand(page, dualRoute);
+  await page.goto('/');
+  await upload(page);
+  const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
+  await expect(panel.locator('.scoring-breakdown')).toContainText('七对');
+  await panel.locator('summary').filter({ hasText: /^碰杠/ }).click();
+  await panel.getByLabel('分组牌面', { exact: true }).selectOption('1m');
+  await expect(panel.getByRole('button', { name: '声明碰', exact: true })).toBeEnabled();
+  await panel.getByRole('button', { name: '声明碰', exact: true }).click();
+  await expect(panel.getByTestId('score-total')).toHaveText('6');
+  await expect(panel.locator('.scoring-breakdown')).not.toContainText('七对');
+  await expect(panel.locator('.scoring-breakdown')).toContainText('清一色');
+  await panel.getByRole('button', { name: '删除第1组碰', exact: true }).click();
+  await expect(panel.locator('.scoring-breakdown')).toContainText('七对');
+  expect(api.calls()).toBe(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('390px: four concealed triplets and menqing require cancelling the conflicting prior selection', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const allPungs = ['1m', '1m', '1m', '2p', '2p', '2p', '3s', '3s', '3s', '4m', '4m', '4m', '5z', '5z'];
+  const api = await mockHand(page, allPungs);
+  await page.goto('/');
+  await upload(page);
+  const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
+  await panel.locator('summary').filter({ hasText: /^特殊情况/ }).click();
+  const menqing = panel.getByRole('checkbox', { name: '门清', exact: true });
+  const fourConcealed = panel.getByRole('checkbox', { name: '四暗刻', exact: true });
+  await menqing.check();
+  await expect(fourConcealed).toBeDisabled();
+  await expect(panel.getByText('四暗刻与门清不叠加；请先取消门清，再按实际牌局确认四暗刻。', { exact: true }).first()).toBeVisible();
+  await menqing.uncheck();
+  await expect(fourConcealed).toBeEnabled();
+  await fourConcealed.check();
+  await expect(panel.getByTestId('score-total')).toHaveText('10');
+  await expect(menqing).toBeDisabled();
+  await expect(panel.getByText('表内：四暗刻不计门清。', { exact: true })).toBeVisible();
+  expect(api.calls()).toBe(1);
+});
+
+test('390px: changing/deleting faces clears unavailable select values and selected invalid bonuses can only be removed', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const api = await mockHand(page);
+  await page.goto('/');
+  await upload(page);
+  const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
+  await panel.locator('summary').filter({ hasText: /^特殊情况/ }).click();
+  const menqing = panel.getByRole('checkbox', { name: '门清', exact: true });
+  await menqing.check();
+  await panel.getByLabel('和牌张', { exact: true }).selectOption('5z');
+  await panel.locator('summary').filter({ hasText: /^碰杠/ }).click();
+  await panel.getByRole('button', { name: '声明碰', exact: true }).click();
+  await expect(panel.getByText('门清已不适用于当前牌面，不计入倍数；可取消原选择。', { exact: true })).toBeVisible();
+  await menqing.uncheck();
+  await expect(menqing).toBeDisabled();
+  await expect(panel.getByLabel('分组牌面', { exact: true })).toHaveValue('');
+  await page.locator('.tile-button').last().click();
+  await page.getByRole('button', { name: '删除这张牌', exact: true }).click();
+  await page.locator('.tile-button').last().click();
+  await page.getByRole('button', { name: '删除这张牌', exact: true }).click();
+  await expect(panel.getByLabel('和牌张', { exact: true })).toHaveValue('');
+  await expect(panel.getByLabel('和牌张', { exact: true }).locator('option[value="5z"]')).toHaveCount(0);
+  await page.getByRole('button', { name: '＋ 添加麻将牌', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: '白板', exact: true }).click();
+  await page.getByRole('button', { name: '完成补牌', exact: true }).click();
+  await expect(panel.getByLabel('和牌张', { exact: true }).locator('option[value="5z"]')).toHaveCount(1);
+  await expect(panel.getByLabel('和牌张', { exact: true })).toHaveValue('');
+  expect(api.calls()).toBe(1);
 });
 
 for (const invalid of [
