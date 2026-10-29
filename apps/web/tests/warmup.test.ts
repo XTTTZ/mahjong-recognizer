@@ -29,6 +29,25 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('optional visible-page GPU warmup', () => {
+  it('keeps the response-body read bounded after headers have already arrived', async () => {
+    browser();
+    let body!: ReadableStreamDefaultController<Uint8Array>;
+    const response = new Response(new ReadableStream<Uint8Array>({ start(controller) { body = controller; } }));
+    const fetch = vi.fn((_url: string, init: RequestInit) => {
+      init.signal?.addEventListener('abort', () => body.error(new DOMException('Aborted', 'AbortError')), { once: true });
+      return Promise.resolve(response);
+    });
+    vi.stubGlobal('fetch', fetch);
+    const { warmupWhenVisible, WARMUP_TIMEOUT_MS } = await import('../src/warmup');
+    warmupWhenVisible();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(response.bodyUsed).toBe(true);
+    expect(fetch.mock.calls[0][1].signal?.aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(WARMUP_TIMEOUT_MS + 1);
+    expect(fetch.mock.calls[0][1].signal?.aborted).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it('waits for first visibility and sends only one empty warmup POST', async () => {
     const env = browser('hidden');
     const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 202 }));

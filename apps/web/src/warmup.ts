@@ -45,7 +45,9 @@ export function warmupWhenVisible(): () => void {
       void Promise.resolve(fetch('/api/warmup', {
         method: 'POST', credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
         headers: { Accept: 'application/json' },
-      })).catch(() => undefined).finally(finish);
+      // Drain the small same-origin JSON response before clearing the timeout
+      // and in-flight flag; headers alone do not finish the response lifecycle.
+      })).then(response => response.text()).catch(() => undefined).finally(finish);
     } catch { finish(); }
   }
   document.addEventListener('visibilitychange', maybeWarm);

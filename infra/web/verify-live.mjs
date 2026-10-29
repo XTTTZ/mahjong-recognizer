@@ -13,6 +13,7 @@ const site = option('--url', 'https://mahjong.avalonxty.site');
 const image = option('--image');
 const recognize = args.includes('--recognize');
 const warmup = recognize || args.includes('--warmup');
+const waitForWarmup = args.includes('--wait-warmup');
 const proxy = option('--proxy');
 const expectedModel = option('--expect-model');
 const expectedBackend = option('--expect-backend');
@@ -25,6 +26,8 @@ const report = { site, observedAt: new Date().toISOString(), gpuRequested: recog
   screens: [], browserErrors: [], consoleErrors: [], externalScripts: [], cspViolations: [], pageChecks: [], sourceOffers: [] };
 try {
   const context = await browser.newContext({ isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+  context.setDefaultTimeout(20_000);
+  context.setDefaultNavigationTimeout(30_000);
   if (!warmup) await context.route('**/api/warmup', route => route.fulfill({ json: { ready: false, skippedByReadOnlyProbe: true } }));
   const healthResponse = await context.request.get(`${site}/api/health`);
   assert.equal(healthResponse.status(), 200);
@@ -47,12 +50,19 @@ try {
       });
     });
     const browserHealth = page.waitForResponse(response => new URL(response.url()).pathname === '/api/health');
+    const warmStarted = Date.now();
+    const pageWarmup = warmup && waitForWarmup && width === 320
+      ? page.waitForResponse(response => new URL(response.url()).pathname === '/api/warmup', { timeout: 70_000 }) : null;
     const navigation = await page.goto(site);
     assert.equal(navigation.status(), 200);
     assert.match(navigation.headers()['content-security-policy'] ?? '', /frame-ancestors 'none'/);
     report.pageChecks.push({ width, noTransform: /\bno-transform\b/.test(navigation.headers()['cache-control'] ?? '') });
     await page.getByRole('button', { name: '拍一张', exact: true }).waitFor();
     assert.equal((await browserHealth).status(), 200);
+    if (pageWarmup) {
+      const response = await pageWarmup;
+      report.pageWarmup = { status: response.status(), elapsedMs: Date.now() - warmStarted, ...await response.json() };
+    }
     await page.getByText('试用模型 · 结果请逐张核对', { exact: true }).waitFor();
     if (!report.health.configured) {
       await page.getByText('识别服务准备中，暂可拍照、选图和裁剪。', { exact: true }).waitFor();
