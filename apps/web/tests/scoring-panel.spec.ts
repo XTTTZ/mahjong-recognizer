@@ -41,6 +41,49 @@ async function mockHand(page: Page, initial = ordinary) {
   return { calls: () => calls, setCards: (next: string[]) => { cards = next; } };
 }
 
+for (const width of [320, 390, 430]) {
+  test(`${width}px: compact photo expands, result navigation moves focus, and touch controls stay usable`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    const api = await mockHand(page);
+    await page.goto('/');
+    await upload(page);
+    const review = page.locator('#hand-review');
+    const score = page.locator('#hand-score');
+    await expect(review).toBeFocused();
+    const photo = page.getByRole('region', { name: '手牌照片', exact: true });
+    await expect(photo).toHaveClass(/compact-photo/);
+    const compactHeight = (await photo.locator('.photo-canvas').boundingBox())!.height;
+    await expect(photo.getByRole('button', { name: '展开', exact: true })).toHaveAttribute('aria-expanded', 'false');
+    await photo.getByRole('button', { name: '展开', exact: true }).click();
+    await expect(photo).not.toHaveClass(/compact-photo/);
+    await expect(photo.getByRole('button', { name: '收起', exact: true })).toHaveAttribute('aria-expanded', 'true');
+    expect((await photo.locator('.photo-canvas').boundingBox())!.height).toBeGreaterThan(compactHeight);
+    await expect(photo.getByRole('button', { name: '选取要识别的牌面区域' })).toBeEnabled();
+    await expect(photo.getByRole('button', { name: '向右旋转照片' })).toBeEnabled();
+    await photo.getByRole('button', { name: '收起', exact: true }).click();
+    await expect(photo).toHaveClass(/compact-photo/);
+    await page.getByRole('link', { name: '胡牌 / 听牌', exact: true }).click();
+    await expect(score).toBeFocused();
+    const navBottom = (await page.getByRole('navigation', { name: '结果快速导航' }).boundingBox())!.y
+      + (await page.getByRole('navigation', { name: '结果快速导航' }).boundingBox())!.height;
+    expect((await score.boundingBox())!.y).toBeGreaterThanOrEqual(navBottom);
+    expect((await score.boundingBox())!.y).toBeLessThan(844);
+    await page.getByRole('link', { name: '核对 14 张牌', exact: true }).click();
+    await expect(review).toBeFocused();
+    await page.locator('.tile-button').first().click();
+    await page.getByRole('dialog').getByRole('button', { name: '二万', exact: true }).click();
+    await expect(page.locator('.tile-button').first()).toBeFocused();
+    // A correction keeps the user's place; only a new request focuses the results section.
+    await expect(review).not.toBeFocused();
+    const targets = await page.locator('button:visible, a:visible, select:visible, input[type="number"]:visible, summary:visible')
+      .evaluateAll(nodes => nodes.map(node => ({ label: node.getAttribute('aria-label') ?? node.textContent?.trim(),
+        width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height })));
+    expect(targets.filter(target => target.width < 44 || target.height < 44)).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(api.calls()).toBe(1);
+  });
+}
+
 test('320px: manual menqing reaches three, codes multiply locally, ordinary self draw adds nothing', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 });
   const api = await mockHand(page);

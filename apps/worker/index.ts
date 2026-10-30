@@ -1,3 +1,5 @@
+import { portableModel } from './portable-models';
+
 const MAX_UPLOAD = 12 * 1024 * 1024 + 64 * 1024; // multipart overhead; image itself remains capped by inference
 const MAX_RESULT = 1024 * 1024;
 const RESPONSE_HEADERS = {
@@ -170,6 +172,7 @@ export async function recognize(request: Request, env: Env): Promise<Response> {
 export default {
   async fetch(request, env): Promise<Response> {
     const path = new URL(request.url).pathname;
+    if (path.startsWith('/models/')) return portableModel(request);
     if (path === '/api/health') return json({ service: 'mahjong', version: env.APP_VERSION,
       configured: env.INFERENCE_ENABLED === 'true' && Boolean(env.MODAL_URL && env.MODAL_PROXY_TOKEN),
       inferenceProbed: false });
@@ -191,6 +194,14 @@ export default {
     response.headers.set('Referrer-Policy', 'no-referrer');
     response.headers.set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
     response.headers.set('Content-Security-Policy', "default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
+    if (path === '/benchmark' || path === '/benchmark/' || /^\/assets\/local\.worker-[\w-]+\.js$/.test(path)) {
+      // Only the explicit local benchmark needs WebAssembly compilation. No
+      // inline/eval JavaScript, CDN scripts or external model hosts are allowed.
+      response.headers.set('Content-Security-Policy', "default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
+      response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+      response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+      response.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+    }
     return response;
   },
 } satisfies ExportedHandler<Env>;

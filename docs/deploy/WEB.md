@@ -70,6 +70,16 @@ GPU故障另有真实证据：旧站请求 `e6065850-0161-44ce-9474-b5359164825f
 
 ## 故障与回滚
 
+### 2026-10-30：可选本地性能测试
+
+`/benchmark`独立加载浏览器推理；首页仍使用既有Modal服务。用户主动加载后才下载约119 MB ONNX模型和25.5 MB运行库。照片不发到服务器，取消/离开页面会结束专属Worker。普通首页没有模型预下载。使用说明和实际浏览器复测命令见[本地测试说明](../../apps/web/src/benchmark/README.md)。
+
+Worker只代理`/models/portable-v1/`下三个固定公开文件，以流式传输避免将权重放入Worker内存。发布源固定为公开GitHub release `runtime-onnx-fp32-20261030`，不接收任意URL，不转发用户Cookie或认证。模型按manifest中的大小和SHA-256在浏览器校验。ONNX先做训练路径脱敏，计算图和张量保持不变。
+
+只有测试文档和`/assets/local.worker-*.js`添加`wasm-unsafe-eval`与同源隔离头；首页仍是`script-src 'self'`。文档与模块Worker都需要COEP，否则浏览器会在模型请求前阻止Worker。`run_worker_first`覆盖这些路由，避免静态资源绕过必要的响应头。运行库为固定npm版本的本地静态文件，不允许CDN脚本或远程照片上传。
+
+需要停止实验入口时，移除首页性能测试链接并保留云端默认识别即可；不要更改当前GPU权重。若模型文件升级，创建新版本路径与release，勿覆盖已声明immutable的文件。
+
 先访问 `/api/health`：`configured=false` 表示 URL、开关或 secret 未齐全；`configured=true` 只表示配置齐全。随后检查 `npx wrangler tail mahjong` 和 Modal App 日志，日志不得记录照片或凭据。
 
 `INFERENCE_ENABLED=false` 后重新部署可暂停 GPU 调用并继续提供前端工具。查看 `npx wrangler versions list`，使用 `npx wrangler rollback <VERSION_ID>` 可回滚到已知版本；注意同时核对回滚版本所绑定的 Modal URL 与模型版本，secret 不随前端源代码回滚。

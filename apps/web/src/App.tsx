@@ -46,6 +46,7 @@ function App() {
   const [handReset, setHandReset] = useState(0);
   const [dragOver, setDragOver] = useState(false);
   const [zoomed, setZoomed] = useState(false);
+  const [photoExpanded, setPhotoExpanded] = useState(false);
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
   const requestRef = useRef<AbortController | null>(null);
@@ -53,9 +54,19 @@ function App() {
   const photoRef = useRef<PreparedPhoto | null>(null);
   const originalPhotoRef = useRef<PreparedPhoto | null>(null);
   const correctionDialog = useRef<HTMLDialogElement>(null);
+  const resultSection = useRef<HTMLElement>(null);
   const busy = state !== 'idle';
 
   useEffect(() => warmupWhenVisible(), []);
+  useEffect(() => {
+    if (result) resultSection.current?.focus({ preventScroll: true });
+  }, [result?.requestId]);
+
+  const jumpTo = (id: string) => {
+    const target = document.getElementById(id);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'start', behavior: 'auto' });
+  };
 
   useEffect(() => {
     const healthController = new AbortController();
@@ -101,6 +112,7 @@ function App() {
     setHandReset(value => value + 1);
     setSelectedTile(null);
     setZoomed(false);
+    setPhotoExpanded(false);
   };
 
   const replacePhoto = (next: PreparedPhoto | null) => {
@@ -286,15 +298,17 @@ function App() {
 
       {!photo && <section className="intro"><span className="eyebrow">把手牌，看清楚</span><h1>拍下手牌，<br />一眼看清。</h1><p>对准麻将牌面，拍照或上传即可识别。</p></section>}
 
-      <p className="trial-note">试用模型 · 结果请逐张核对</p>
+      {!result && <p className="trial-note">试用模型 · 结果请逐张核对</p>}
+      {result && <nav className="result-navigation" aria-label="结果快速导航"><a href="#hand-review" onClick={e => { e.preventDefault(); jumpTo('hand-review'); }}>核对 {visibleTiles.length} 张牌</a><a href="#hand-score" onClick={e => { e.preventDefault(); jumpTo('hand-score'); }}>胡牌 / 听牌</a></nav>}
       {configured === false && <p className="notice service-notice" role="status"><Icon name="info" size={18} />识别服务准备中，暂可拍照、选图和裁剪。</p>}
 
-      <section className={`photo-card ${photo ? 'has-photo' : ''} ${dragOver ? 'drag-over' : ''}`} aria-label="手牌照片"
+      <section className={`photo-card ${photo ? 'has-photo' : ''} ${result && !photoExpanded ? 'compact-photo' : ''} ${dragOver ? 'drag-over' : ''}`} aria-label="手牌照片"
         onDragOver={event => { event.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={event => { event.preventDefault(); setDragOver(false); void choosePhoto(event.dataTransfer.files[0]); }}>
         {photo ? <>
           <div className="photo-toolbar"><span><span className="status-dot" />{result ? '识别照片' : '准备好了'}</span><div>
+            {result && <button className="text-button" aria-expanded={photoExpanded} onClick={() => { setPhotoExpanded(!photoExpanded); setZoomed(false); }}>{photoExpanded ? '收起' : '展开'}</button>}
             <button className="text-button" onClick={() => setCropOpen(true)} disabled={busy} aria-label="选取要识别的牌面区域"><Icon name="crop" size={17} /><span>裁剪</span></button>
             <button className="text-button" onClick={() => void rotate()} disabled={busy} aria-label="向右旋转照片"><Icon name="rotate" size={17} /><span>旋转</span></button>
             <button className="icon-button" onClick={() => { invalidate(); replacePhoto(null); setState('idle'); setError(null); }} aria-label="移除照片"><Icon name="close" size={19} /></button>
@@ -331,7 +345,7 @@ function App() {
           : photo && !result ? <div className="actions photo-actions"><button className="primary-button" onClick={() => void startRecognition()} disabled={offline || configured === false}><Icon name="spark" />开始识别<Icon name="arrow" size={19} /></button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />换一张</button></div>
             : !photo ? <div className="actions"><button className="primary-button" onClick={() => cameraRef.current?.click()}><Icon name="camera" />拍一张<Icon name="arrow" size={19} /></button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />从相册选</button></div> : null}
 
-      {result && <section className="results" aria-label="识别结果" aria-live="polite">
+      {result && <section ref={resultSection} tabIndex={-1} id="hand-review" className="results" aria-label="识别结果" aria-live="polite">
         <div className="results-heading"><div><span className="eyebrow">这次识别</span><h1>{visibleTiles.length ? `${visibleTiles.length} 张麻将` : allRemoved ? '已移除全部牌' : '暂未找到麻将'}</h1></div><span className={`result-badge ${badgeNeedsReview ? 'needs-check' : ''}`}><Icon name={badgeNeedsReview ? 'alert' : 'check'} size={15} />{badgeText}</span></div>
         {!allRemoved && changed === 0 && (result.quality.status === 'needs_retake' || result.quality.reasons.length > 0 || !visibleTiles.length) && <div className="quality-note"><Icon name="alert" size={18} /><p>{result.quality.reasons.length ? result.quality.reasons.join('；') : '没有找到清楚的牌面，可重新拍摄或手动补牌。'}</p></div>}
         {allRemoved && <button className="secondary-button" onClick={undoHand}>撤销人工调整</button>}
@@ -341,7 +355,7 @@ function App() {
           return <button key={tile.id} className={`tile-button ${uncertain && !corrections[tile.id] ? 'needs-check' : ''} ${corrections[tile.id] ? 'corrected' : ''} ${manual ? 'manual-added' : ''}`} aria-label={`第 ${index + 1} 张 ${value.label}${manual ? '，手动补入' : corrections[tile.id] ? '，已手动修改' : uncertain ? '，待核对' : ''}`} onClick={() => setSelectedTile(tile.id)}><span className="tile-index">{index + 1}</span><TileFace classId={value.classId} label={value.label} /><span className="tile-label">{value.label}</span>{manual ? <span className="tile-flag manual">手动补入</span> : uncertain && !corrections[tile.id] ? <span className="tile-flag">待核对</span> : corrections[tile.id] ? <span className="tile-flag manual">已修改</span> : <span className="tile-flag placeholder">核对</span>}</button>;
         })}</div><div className="results-hint"><span>点击牌面可修改{changed > 0 ? ` · ${changed} 处人工调整` : ''}</span>{changed > 0 && <button className="text-button" onClick={undoHand}>撤销调整</button>}</div></>}
         <div className="hand-edit-actions"><button className="secondary-button" disabled={visibleTiles.length >= 18} onClick={() => { setSelectedTile(null); setLastAdded(null); setAddingTile(true); }}>＋ 添加麻将牌</button><span>漏牌可补入，多牌可点牌面删除</span></div>
-        <ScoringPanel tiles={scoringTiles} resetKey={`${result.requestId}:${handReset}`} />
+        <div id="hand-score" tabIndex={-1}><ScoringPanel tiles={scoringTiles} resetKey={`${result.requestId}:${handReset}`} /></div>
         <div className="result-actions"><button className="primary-button" onClick={() => cameraRef.current?.click()}><Icon name="camera" size={20} />再拍一张</button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />换照片</button></div>
         <details className="result-details"><summary>识别详情</summary><dl><div><dt>模型版本</dt><dd>{result.modelVersion}</dd></div><div><dt>处理耗时</dt><dd>{(result.timings.totalMs / 1000).toFixed(1)} 秒</dd></div><div><dt>请求编号</dt><dd>{result.requestId}</dd></div></dl></details>
       </section>}
@@ -351,6 +365,7 @@ function App() {
         <nav aria-label="开源与模型" className="source-links">
           <a href="https://github.com/XTTTZ/mahjong-recognizer" target="_blank" rel="noopener noreferrer">完整源码 · AGPL-3.0</a>
           <a href="https://github.com/XTTTZ/mahjong-recognizer/releases/tag/model-v4-20261027" target="_blank" rel="noopener noreferrer">模型下载</a>
+          <a href="/benchmark">设备性能测试</a>
         </nav>
       </footer>
     </main>

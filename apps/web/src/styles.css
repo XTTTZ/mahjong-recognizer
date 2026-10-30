@@ -210,3 +210,23 @@ svg { flex-shrink: 0; }
   .crop-dialog { margin: auto; border-radius: 23px; max-height: 88dvh; width: calc(100% - 40px); }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* Keep the hand and its score close, without hiding correction controls. */
+.result-navigation { position: sticky; top: max(8px, env(safe-area-inset-top)); z-index: 5; display: flex; gap: 6px; padding: 5px; margin: 4px 0 14px; background: #fffef8f5; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 4px 16px #193d3410; }
+.result-navigation a { min-height: 44px; display: flex; flex: 1; justify-content: center; align-items: center; text-decoration: none; font-size: 14px; font-weight: 650; color: var(--forest); border-radius: 9px; background: #eef3e9; }
+#hand-review, #hand-score { scroll-margin-top: 84px; }
+.compact-photo .photo-stage:not(.is-zoomed) .photo-canvas { height: 155px; aspect-ratio: auto !important; }
+.compact-photo .photo-stage:not(.is-zoomed) .source-photo { object-fit: contain; }
+.compact-photo .photo-caption { display: none; }
+.photo-toolbar .text-button, .zoom-button { min-height: 44px; }
+.results { margin-top: 20px; }
+.results-heading { margin-bottom: 14px; }
+.tile-list { gap: 10px 7px; }
+.tile-index { color: #647361; margin-bottom: 3px; font-size: 10px; }
+.tile-label { font-size: 12px; margin-top: 4px; color: #40583e; }
+.tile-flag { font-size: 10px; }
+.tile-flag.placeholder { display: none; }
+.results-hint, .hand-edit-actions > span { font-size: 12px; line-height: 1.6; }
+@media (max-width: 360px) { .tile-label { font-size: 12px; } .photo-toolbar { padding-left: 10px; padding-right: 4px; } .photo-toolbar .text-button { padding-left: 5px; padding-right: 5px; } }
+.photo-toolbar .text-button { min-width: 44px; }
+.zoom-button { width: 44px; }
