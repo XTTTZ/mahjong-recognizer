@@ -1,0 +1,440 @@
+{
+  "upstream": "https://github.com/samoheen/mahjong-tiles",
+  "upstreamCommit": "8b5a3cd35ef22bcdb1f7f09dc9926f733885f7b4",
+  "upstreamLicense": "Public Domain / CC0-1.0",
+  "sourceDirectory": "hongkong/svg",
+  "localAdaptation": "Add a viewBox matching each original width/height only; retain original paths, colors and geometry. All source SVGs are transparent face-only art. Back is original project art.",
+  "glyphsAsPaths": true,
+  "totalBytes": 226774,
+  "files": [
+    {
+      "classId": "1m",
+      "source": "hongkong/svg/08-characters-1.svg",
+      "sourceSha256": "55523202ff0d445cffc11e720def4a32f8b1229d701da6bde463651281dd800c",
+      "localFile": "1m.svg",
+      "localSha256": "6ac6f44d3556c1da1de78e6d144ed8e4b9aa2cb459b7211ab56e8eb453dd9d8b",
+      "bytes": 4059,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "2m",
+      "source": "hongkong/svg/09-characters-2.svg",
+      "sourceSha256": "696354a7066bfa0ae23994fe03fd581d933ded2410f3b0f3665a87df85021bc9",
+      "localFile": "2m.svg",
+      "localSha256": "8815f78a96c4d9a35148834d9a88e6d1c42fff97544f0bb3171726a1326b2dad",
+      "bytes": 4381,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "3m",
+      "source": "hongkong/svg/10-characters-3.svg",
+      "sourceSha256": "458770bfbeb5d3b8987515862952011f2ce9d2b6012eb418839be6e3c9ce53cd",
+      "localFile": "3m.svg",
+      "localSha256": "bb03ccd32b706314f207bb0e64b713999ecab9efc180151db90dac9739067ba5",
+      "bytes": 4518,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "4m",
+      "source": "hongkong/svg/11-characters-4.svg",
+      "sourceSha256": "4a81edee06da5f6379eb2e0bffd1184e0f5536d30eaa236bb69f7cd141006850",
+      "localFile": "4m.svg",
+      "localSha256": "b7f8e3e365ebf93cc46b7c2d87b7923e16196992d19beb73672976fc4315afab",
+      "bytes": 5137,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "5m",
+      "source": "hongkong/svg/12-characters-5.svg",
+      "sourceSha256": "34ad331cfe1a478458592321de1853bbc4f799ac980524c311bbd380e5487adb",
+      "localFile": "5m.svg",
+      "localSha256": "c0618d87297514e453c72cd755ef9bd682c3fdc8a34a9fb45f18e671dbf591cb",
+      "bytes": 5619,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "6m",
+      "source": "hongkong/svg/13-characters-6.svg",
+      "sourceSha256": "a09a9ca1cace1ac9ed2e7cdeec75f67e8232daf5d00c8dd0e87f065b9774d34e",
+      "localFile": "6m.svg",
+      "localSha256": "0cbd68714e200eb8958b883794caa6f107e5d2ecdce5cfef022438f4c95345b2",
+      "bytes": 4828,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "7m",
+      "source": "hongkong/svg/14-characters-7.svg",
+      "sourceSha256": "435c12c538735292be26b47d68ec9de3044dc68590e31f123cac98fe641821e4",
+      "localFile": "7m.svg",
+      "localSha256": "b31d45416233befcfd1489ac4040a0649a1f1cbfd88a2c78b0b7b2713968e057",
+      "bytes": 4810,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "8m",
+      "source": "hongkong/svg/15-characters-8.svg",
+      "sourceSha256": "25370c881e75dbcbfaf2b8bb16243ebadf0f63ee6f846373bac6989074092235",
+      "localFile": "8m.svg",
+      "localSha256": "dbd926a146e7df91032f5861a96f191741802e66b7dcbc851a2d1f44854c007b",
+      "bytes": 4475,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "9m",
+      "source": "hongkong/svg/16-characters-9.svg",
+      "sourceSha256": "afdeaa5a591807abf763a3c761f677f3ab8bf6cd421f129f0cb723fdeb41e517",
+      "localFile": "9m.svg",
+      "localSha256": "66ec882ff9773f2ad00c2391ea74b60212f8b38a31e61deea82461b496d24191",
+      "bytes": 4991,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "1p",
+      "source": "hongkong/svg/17-circles-1.svg",
+      "sourceSha256": "0890f8883849c61f29a5349daa037971a8563eb4636bc488766fd0e75305eb47",
+      "localFile": "1p.svg",
+      "localSha256": "06bac56ebdf115ad611bbc5a33ba6ae7ded8a45c77fb65ae23792cf374293245",
+      "bytes": 6232,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "2p",
+      "source": "hongkong/svg/18-circles-2.svg",
+      "sourceSha256": "6acbaa3a156ad34c81b13221db296f2e3471d89eaeca5aa9fb13dd8d66f9086c",
+      "localFile": "2p.svg",
+      "localSha256": "b42bd54f168e18b9511a21ea879334c03d1b865f7d3b8b4bf0a21a35392b18cd",
+      "bytes": 3341,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "3p",
+      "source": "hongkong/svg/19-circles-3.svg",
+      "sourceSha256": "7b717a3033f73c7511d5c7898256ffe5bb7ac075350aea453c6c5051ba5e507a",
+      "localFile": "3p.svg",
+      "localSha256": "d9fa3de4c55c379dbed8a44056fc67b3975108d5dd9249fc7303ba8a65c31a9b",
+      "bytes": 4142,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "4p",
+      "source": "hongkong/svg/20-circles-4.svg",
+      "sourceSha256": "0d9519780f6717b597e6815bf9e1b043bcb361a55c920abd4c59dc2f27cc53bf",
+      "localFile": "4p.svg",
+      "localSha256": "5463f1e9b73a768b87aa2b76698be80743961070c81c791d4c8ae73960868f27",
+      "bytes": 6104,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "5p",
+      "source": "hongkong/svg/21-circles-5.svg",
+      "sourceSha256": "4b890d044a64592b273020d7a1736e33a76e0ac5b0d7ac12d7122e491f729afe",
+      "localFile": "5p.svg",
+      "localSha256": "591c91f2fc9ec7c90f1a650f1bcc50be4ecc99fc567dc05022b13ed4edc6e2c0",
+      "bytes": 6119,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "6p",
+      "source": "hongkong/svg/22-circles-6.svg",
+      "sourceSha256": "a8b296f9c6140d15a55fc2060a7db8c2f4bd269a04838f067fe3899619fb8238",
+      "localFile": "6p.svg",
+      "localSha256": "624c5a1b8561b5c72f487f5d38b37a296993f8c9ea24a8f96dfedf5340222646",
+      "bytes": 8963,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "7p",
+      "source": "hongkong/svg/23-circles-7.svg",
+      "sourceSha256": "b20f1a3e8f3c6a9959d17bf65283e2a93abab3881ec16325b5af2a494f6302bd",
+      "localFile": "7p.svg",
+      "localSha256": "3b125cff30516519cf02c3f1661e0da832ee67e53ca62e0f561220baa4224e80",
+      "bytes": 7461,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "8p",
+      "source": "hongkong/svg/24-circles-8.svg",
+      "sourceSha256": "d4b9f637dc3f5f365bf77aae8feac105242911e3afc784925999fbf7ea0809d5",
+      "localFile": "8p.svg",
+      "localSha256": "2d229c0d34b59ca85f7c66cb7ded2ca957b345b0a1b6f09a2087fd2689ba5775",
+      "bytes": 9651,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "9p",
+      "source": "hongkong/svg/25-circles-9.svg",
+      "sourceSha256": "9fa20041bad28a2c1d27864d4ffedcd3350cd88a848095d8dd6faba8c8164825",
+      "localFile": "9p.svg",
+      "localSha256": "008781207d19692d337ff7def1a245aaf2f45d10a77a0b873280de90908062a2",
+      "bytes": 8056,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "1s",
+      "source": "hongkong/svg/26-bamboos-1.svg",
+      "sourceSha256": "02f965867fb6f122d978081acf7b56b6a800f16092500432a28318c22d905b4e",
+      "localFile": "1s.svg",
+      "localSha256": "fc1a1c65941b6e0ba78db20deded22bacec4f5f55cafa42b401efb4c3f6b59d2",
+      "bytes": 7261,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "2s",
+      "source": "hongkong/svg/27-bamboos-2.svg",
+      "sourceSha256": "8d403202ea89f42ace5af5251686b6da4f98bcd962bbf727261c3a261c8ec046",
+      "localFile": "2s.svg",
+      "localSha256": "f09ec8a08bb8d925a665aff147a36db03dae53866c14e4b4a8d7ecdedf0f832b",
+      "bytes": 1523,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "3s",
+      "source": "hongkong/svg/28-bamboos-3.svg",
+      "sourceSha256": "b882ee0addc2b16d0a0ef5406ddcdf73f13ddac66a8f87470a2e14cf010a0ac7",
+      "localFile": "3s.svg",
+      "localSha256": "5ade48307f1ddf97ee731cd1fe964a0bead8fddce60a3ea99f4526cd83487d5a",
+      "bytes": 2118,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "4s",
+      "source": "hongkong/svg/29-bamboos-4.svg",
+      "sourceSha256": "e8094d3728f501a92513be752c23f78eb42ed2d38105234b1635c453cb68cd0e",
+      "localFile": "4s.svg",
+      "localSha256": "b4b994e1ed575b4c855635d652ebffaed2b26f8d8a6126ec3aaaf1b9be6d03a4",
+      "bytes": 2750,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "5s",
+      "source": "hongkong/svg/30-bamboos-5.svg",
+      "sourceSha256": "ab5a4293541a0cbd5633a7de90071e0295152beada72d1010259d9e405832c31",
+      "localFile": "5s.svg",
+      "localSha256": "ba5eadd867388d7a08561d633617effe61bf0c17f51bbd36c704d498990c83f1",
+      "bytes": 3395,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "6s",
+      "source": "hongkong/svg/31-bamboos-6.svg",
+      "sourceSha256": "6166bdbfe12e60f1d4814eb90eb26057d00b9d4623987d7a6f63678975840c51",
+      "localFile": "6s.svg",
+      "localSha256": "9e739d4e81237eee207c36e24ebaa1ba8a4405d8a1c5b399a848379785decf77",
+      "bytes": 3927,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "7s",
+      "source": "hongkong/svg/32-bamboos-7.svg",
+      "sourceSha256": "5c0998cdc9bdecd5af4f350b804554af5d277f7d988e356535d49fd0bc032853",
+      "localFile": "7s.svg",
+      "localSha256": "018b0c090f36affe0f5fc949833517fcb17aad9ee4f7a7f11679b4090ba96d4f",
+      "bytes": 4628,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "8s",
+      "source": "hongkong/svg/33-bamboos-8.svg",
+      "sourceSha256": "60d84e2bcabe442a194998ae65c0cf92a09f1e7f1bf4832ca6e1cfe074c81dd5",
+      "localFile": "8s.svg",
+      "localSha256": "a502dd2efd28060d8260a58c0e87ee360b19eee7eb07bc3a0f7d9251f4592bde",
+      "bytes": 4472,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "9s",
+      "source": "hongkong/svg/34-bamboos-9.svg",
+      "sourceSha256": "35c78d6bae6f532bbb49043f448c999059e2bd33374123de5c7eb702b728f29b",
+      "localFile": "9s.svg",
+      "localSha256": "a4d4c06828b4b81189dfed43a975e45e5788c4c846add97734446a39cdea7e4c",
+      "bytes": 5859,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "1z",
+      "source": "hongkong/svg/04-east-wind.svg",
+      "sourceSha256": "8373df19e6a3c6a1bbc4420cfee153d976a8d49e0c8e0d15523c077fd0e601a8",
+      "localFile": "1z.svg",
+      "localSha256": "c25292d65286f14e1a38493bbe4369153595d49d5d19c6531620dc59e47d852d",
+      "bytes": 2555,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "2z",
+      "source": "hongkong/svg/05-south-wind.svg",
+      "sourceSha256": "ceb254ba29b9be49039494714d50065644acd37dd1c8d4f462b3f8fc9bd46e5e",
+      "localFile": "2z.svg",
+      "localSha256": "d91a8db420346534408bbd736f170a32d78fdcde7563f657c0a14e5dd2461c89",
+      "bytes": 3157,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "3z",
+      "source": "hongkong/svg/06-west-wind.svg",
+      "sourceSha256": "497289234e43eaa253e2d0cb4631de7dc5d9755ea25d5aa0ddf0806b748815c7",
+      "localFile": "3z.svg",
+      "localSha256": "06db3147da6f65796dfc736edd1179a7b7a9c664c6ec796b2a2a06753b4ba90e",
+      "bytes": 2670,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "4z",
+      "source": "hongkong/svg/07-north-wind.svg",
+      "sourceSha256": "d631f46ee101e03733348bd883fee68a407d5a99874a17c26df120fc32a5c4ab",
+      "localFile": "4z.svg",
+      "localSha256": "c67f90258051b68add7056102b1d26d2b4c78e6ebb74ba19e00576212d8833c8",
+      "bytes": 2149,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "5z",
+      "source": "hongkong/svg/01-white-dragon.svg",
+      "sourceSha256": "6f4fae54b8b48c9dd2fef97f7913f219fe596200ba94f32b97597a710b1ec23d",
+      "localFile": "5z.svg",
+      "localSha256": "b900f5e6b3fc3c993810a7546f544e029461483e77682b7926a9775f17cd5093",
+      "bytes": 1495,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "6z",
+      "source": "hongkong/svg/02-green-dragon.svg",
+      "sourceSha256": "9c21337762fa5b4dc16e87e660a3ea9d6a0a6ac1ba77fa9fa007ffc71a7790a4",
+      "localFile": "6z.svg",
+      "localSha256": "1a87e6a35488fc684112990d19e89430eeed68265d2be999e39e80f23e6113b5",
+      "bytes": 4042,
+      "width": 296,
+      "height": 420
+    },
+    {
+      "classId": "7z",
+      "source": "hongkong/svg/03-red-dragon.svg",
+      "sourceSha256": "8d06bd9e3bc69cb9e71e6f1529385ecef4836ad5aa5ba513052d6307375074bb",
+      "localFile": "7z.svg",
+      "localSha256": "9599353bf87f9c9d42c90ced6c0462527f31b86e098cb078b0305474537b1908",
+      "bytes": 1934,
+      "width": 301,
+      "height": 420
+    },
+    {
+      "classId": "1h",
+      "source": "hongkong/svg/35-spring.svg",
+      "sourceSha256": "351c4bdb3d430a9582b2e2ebc1429992a5dcaf3ea6b09610f76089883b902b03",
+      "localFile": "1h.svg",
+      "localSha256": "d72533e20a29518878879614f0847e29e3156eeac4e61876000b8c438f55333d",
+      "bytes": 8365,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "2h",
+      "source": "hongkong/svg/36-summer.svg",
+      "sourceSha256": "89d1e3f8fdb21d2a6543d81d53573df4c41550577caac55190e353c9b6c9bc18",
+      "localFile": "2h.svg",
+      "localSha256": "5d2c6e8382bad0e0706d5d08dd4c28533021081d6d453e1b1eea43a87aae9256",
+      "bytes": 7518,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "3h",
+      "source": "hongkong/svg/37-autumn.svg",
+      "sourceSha256": "04a2baab34b887a8fea2f772159fc92003c89f6ae30ecce4be777ab850d595fe",
+      "localFile": "3h.svg",
+      "localSha256": "579eeac34699adf06913b25e2a7d818afac8eabf0a60cbf08ce5dd58b8b3c0a3",
+      "bytes": 8313,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "4h",
+      "source": "hongkong/svg/38-winter.svg",
+      "sourceSha256": "f041dad97b5b1a3b44c438ebba97072567d29ab6db0fdf2dff436e94c98d0a38",
+      "localFile": "4h.svg",
+      "localSha256": "caafc695cc742f4d1c3a40438bea7068b44d650a6f35c59b3d2ed6e910091475",
+      "bytes": 8216,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "5h",
+      "source": "hongkong/svg/39-plum.svg",
+      "sourceSha256": "a8f73eaaa5571bb0ccfb4313438dec3d3912244a8eba8a11bd868d3e2eb39928",
+      "localFile": "5h.svg",
+      "localSha256": "f307352df88cd4eed1a4fa3ddfb37515fb82dbb07ac1d6756a81bd9a3c92983c",
+      "bytes": 8620,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "6h",
+      "source": "hongkong/svg/40-orchid.svg",
+      "sourceSha256": "34dad3b10a37e1b5fe16efeae6976c1513ebd7c9555d8c4e6dde6260388967da",
+      "localFile": "6h.svg",
+      "localSha256": "25891e8d0de9cef750126f625a386d0b4b4bd8d72867c2b2dfc8e5faf50937e4",
+      "bytes": 4658,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "7h",
+      "source": "hongkong/svg/41-chrysanthemum.svg",
+      "sourceSha256": "dfb485a25c36e84bd9eeaae67e037c459083c9e396c1216262f10cfef33c8c43",
+      "localFile": "7h.svg",
+      "localSha256": "8fb7a27aab4bc6b557acf3adac1e342cfad733b1a3db19b9fd09cff96784227d",
+      "bytes": 13727,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "8h",
+      "source": "hongkong/svg/42-bamboo.svg",
+      "sourceSha256": "6765730b3e2b850efa291142ca361295ca5ee1031a56f93249b09e60d5a2c461",
+      "localFile": "8h.svg",
+      "localSha256": "ada5bf00ebbc229be352bb071b266b49556d8abba886b105524292f36ba1e05d",
+      "bytes": 9992,
+      "width": 300,
+      "height": 420
+    },
+    {
+      "classId": "back",
+      "source": "Original project illustration, AGPL-3.0-only (repository LICENSE)",
+      "localFile": "back.svg",
+      "localSha256": "7495ae15b943914bb776c239bc50ef93b0ef658b476cb7b62cf190017dabdcd9",
+      "bytes": 543,
+      "width": 300,
+      "height": 420
+    }
+  ]
+}

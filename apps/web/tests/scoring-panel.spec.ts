@@ -165,6 +165,8 @@ test('320px: live one-away candidates keep a zero-base wait conditional despite 
   const conditional = waits.getByRole('list', { name: '需特殊条件，基础不足3倍', exact: true });
   await expect(conditional.locator('[data-tile="5z"]')).toContainText('白板');
   await expect(conditional.locator('[data-tile="5z"]')).toContainText('基础0倍');
+  await expect(conditional.locator('[data-tile="5z"] .scoring-wait-condition')).toBeVisible();
+  await expect(waits.locator('details, summary')).toHaveCount(0);
   await expect(waits.getByText('不足3倍的候选不能直接胡。', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: '＋ 添加麻将牌', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: '白板', exact: true }).click();
@@ -227,23 +229,26 @@ test('430px: seven-pairs interpretation permits real meld correction, while inco
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test('430px: thirteen-orphans waits draw tile faces and fold the long list without overflow', async ({ page }) => {
-  await page.setViewportSize({ width: 430, height: 844 });
+for (const width of [320, 390, 430]) test(`${width}px: all thirteen-orphans waits stay expanded without overflow`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 844 });
   const orphanTiles = ['1m', '9m', '1p', '9p', '1s', '9s', '1z', '2z', '3z', '4z', '5z', '6z', '7z'];
   const api = await mockHand(page, orphanTiles);
   await page.goto('/');
   await upload(page);
   const panel = page.getByRole('region', { name: '胡牌计倍', exact: true });
   const waits = panel.getByRole('region', { name: '听牌候选', exact: true });
-  await expect(waits.getByRole('list', { name: '基础已满3倍', exact: true }).locator('li')).toHaveCount(6);
+  const qualified = waits.getByRole('list', { name: '基础已满3倍', exact: true });
+  await expect(qualified.locator('li')).toHaveCount(13);
   await expect(waits.locator('[data-tile="1m"]')).toContainText('十三幺');
   await expect(waits.locator('[data-tile="1m"] .tile-face')).toHaveCount(1);
-  await waits.getByText('查看其余7种候选', { exact: true }).click();
   await expect(waits.locator('li:visible')).toHaveCount(13);
-  await expect(waits.getByRole('list', { name: '基础已满3倍 · 更多', exact: true })).toBeVisible();
+  await expect(waits.locator('details, summary')).toHaveCount(0);
+  await expect(qualified.locator('[data-tile="7z"]')).toContainText('中');
+  await expect(qualified.locator('[data-tile="7z"]')).toContainText('基础13倍');
+  await expect(qualified.locator('[data-tile="7z"]')).toBeVisible();
   expect(api.calls()).toBe(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await panel.screenshot({ path: 'artifacts/web/scoring/waits-orphans-430.png' });
+  await panel.screenshot({ path: `artifacts/web/scoring/waits-orphans-${width}.png` });
 });
 
 test('430px: a hand with both seven-pair and standard routes can declare an actual pung and stop scoring seven pairs', async ({ page }) => {

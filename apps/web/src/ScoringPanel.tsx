@@ -41,21 +41,16 @@ function WaitingTiles({ candidates, label, conditional = false }: {
   candidates: readonly WaitingTileCandidate[]; label: string; conditional?: boolean;
 }) {
   if (!candidates.length) return null;
-  const renderList = (items: readonly WaitingTileCandidate[], listLabel: string) => <ul className={`scoring-wait-list ${items.length === 1 ? 'has-one' : ''}`} aria-label={listLabel}>{items.map(candidate => <li key={candidate.tile} data-tile={candidate.tile}>
+  return <div className={`scoring-wait-group ${conditional ? 'is-conditional' : ''}`}>
+    <h4>{label}</h4>
+    <ul className={`scoring-wait-list ${candidates.length === 1 ? 'has-one' : ''}`} aria-label={label}>{candidates.map(candidate => <li key={candidate.tile} data-tile={candidate.tile}>
     <TileFace classId={candidate.tile} label={tileLabel(candidate.tile)} small />
     <div className="scoring-wait-copy">
       <div><strong>{tileLabel(candidate.tile)}</strong><b>基础{multiplier(candidate.baseMultiplier)}倍</b></div>
       <span>{candidate.patterns.map(pattern => pattern.label).join('＋') || '基础牌型暂无计倍'}</span>
-      {conditional && candidate.conditionHints.length > 0 && <details className="scoring-wait-condition"><summary>条件说明</summary><p>{candidate.conditionHints.join('；')}</p></details>}
+      {conditional && candidate.conditionHints.length > 0 && <p className="scoring-wait-condition">{candidate.conditionHints.join('；')}</p>}
     </div>
-  </li>)}</ul>;
-  return <div className={`scoring-wait-group ${conditional ? 'is-conditional' : ''}`}>
-    <h4>{label}</h4>
-    {renderList(candidates.slice(0, 6), label)}
-    {candidates.length > 6 && <details className="scoring-wait-extra">
-      <summary>查看其余{candidates.length - 6}种候选</summary>
-      {renderList(candidates.slice(6), `${label} · 更多`)}
-    </details>}
+  </li>)}</ul>
   </div>;
 }
 

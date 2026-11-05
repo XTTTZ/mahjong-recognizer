@@ -27,3 +27,11 @@ See docs/data/DATASET_CARD.md and docs/data/DATASET_V4.md for provenance and lim
 
 Other third-party packages retain their own licenses. This notice does not
 relicense their separately distributed source or assets.
+
+Tile face illustrations: Hong Kong set from samoheen/mahjong-tiles, commit
+8b5a3cd35ef22bcdb1f7f09dc9926f733885f7b4, Public Domain / CC0 1.0.
+https://github.com/samoheen/mahjong-tiles
+Local additions provide SVG viewBox scaling and an original green tile back.
+See apps/web/public/tiles/README.md, LICENSE.md and manifest.json for attribution,
+exact class mapping, modifications and per-file hashes. These face assets retain
+their upstream public-domain dedication independently of the application's AGPL.
