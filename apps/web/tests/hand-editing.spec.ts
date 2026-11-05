@@ -42,7 +42,7 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
     const palette = await options.boundingBox();
     expect(deletion!.y + deletion!.height).toBeLessThanOrEqual(palette!.y);
     const assertFits = async () => {
-      await expect.poll(() => options.locator('img').evaluateAll(nodes => nodes.every(node => node.complete && node.naturalWidth > 0))).toBe(true);
+      await expect.poll(() => options.locator('img').evaluateAll(nodes => nodes.every(node => node instanceof HTMLImageElement && node.complete && node.naturalWidth > 0))).toBe(true);
       await expect(options.locator('img')).toHaveCount(await options.getByRole('button').count());
       const bounds = await dialog.evaluate(node => ({ client: node.clientHeight, scroll: node.scrollHeight }));
       expect(bounds.scroll).toBeLessThanOrEqual(bounds.client + 1);
