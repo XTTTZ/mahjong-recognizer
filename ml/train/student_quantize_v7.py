@@ -30,6 +30,8 @@ def main():
     check_evaluation_data(run,contract);check_evaluation_data(detector_run,contract)
     if run['architecture']!=ARCHITECTURE or not run.get('finishedAt') or not detector_run.get('finishedAt') or not detector_run.get('generic'):
         raise ValueError('Quantization requires completed immutable student/detector runs')
+    if run.get('resolution') != 224 or run['config'].get('resolution') != 224:
+        raise ValueError('Legacy FX INT8 recipe supports only signed224 student geometry')
     if not selection.get('checkpointSelectionComplete') or selection.get('partial') or selection.get('inferenceFailedImages') or selection.get('split')!='validation_only':
         raise ValueError('Complete FP32 student validation required before quantization')
     checkpoint=Path(selection['selectedClassifier']);verify_receipt(checkpoint,run);verify_receipt(a.detector_checkpoint,detector_run)

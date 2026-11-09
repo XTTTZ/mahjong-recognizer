@@ -52,6 +52,17 @@ def main():
         print(json.dumps({'trainingStarted':False,'derivativeReady':ready,'config':config,'parent':evidence,
                           'backgrounds':len(derivative.get('backgrounds',[])),'dataContract':contract}));return
     if not ready:raise FileNotFoundError('Prepare/review the signed derivative first')
+    run={'architecture':parent['architecture'],'generic':True,'resolution':args.resolution,'classes':contract['classes'],
+         'ontology':'faces42','resumeSignature':signature,'config':config,'parentWarmStart':evidence,
+         'startedAt':datetime.now(timezone.utc).isoformat(),'plannedEpochs':args.epochs,
+         'annotationSha256':contract['splits']['train']['annotationSha256'],
+         'validationAnnotationSha256':contract['splits']['valid']['annotationSha256'],'testOpened':False}
+    train_bounded_detector(args,train_options,run,args.parent_checkpoint)
+
+
+def train_bounded_detector(args,train_options,run,initial_checkpoint):
+    """Shared fixed-recipe loop for signed warm starts and fresh nano initialization."""
+    signature=run['resumeSignature']
     if (args.output/'run.json').exists():raise FileExistsError('Use an independent fresh run')
     if importlib.metadata.version('ultralytics')!=ULTRALYTICS_VERSION:raise RuntimeError('Use the pinned independent v6 environment')
     import torch
@@ -60,13 +71,8 @@ def main():
     os.environ.update(YOLO_OFFLINE='true',YOLO_AUTOINSTALL='false',YOLO_CONFIG_DIR=str(args.output/'yolo-config'))
     from ultralytics import YOLO,settings
     settings.update({'sync':False,'wandb':False,'mlflow':False,'clearml':False,'comet':False,'dvc':False,'raytune':False,'tensorboard':False})
-    run={'architecture':parent['architecture'],'generic':True,'resolution':args.resolution,'classes':contract['classes'],
-         'ontology':'faces42','resumeSignature':signature,'config':config,'parentWarmStart':evidence,
-         'startedAt':datetime.now(timezone.utc).isoformat(),'plannedEpochs':args.epochs,
-         'annotationSha256':contract['splits']['train']['annotationSha256'],
-         'validationAnnotationSha256':contract['splits']['valid']['annotationSha256'],'testOpened':False}
     atomic_json(args.output/'run.json',run)
-    model=YOLO(str(args.parent_checkpoint),task='detect')
+    model=YOLO(str(initial_checkpoint),task='detect')
     started=time.monotonic();completed=0;last_saved=-1;reason=None
     def saved(trainer):
         nonlocal last_saved
@@ -78,7 +84,8 @@ def main():
         # final_eval invokes this again without saving a new training epoch.
         if trainer.epoch!=last_saved:return
         if not trainer.csv.is_file():raise RuntimeError('Validated epoch has no metrics receipt')
-        rows=list(csv.DictReader(trainer.csv.open(encoding='utf-8')))
+        with trainer.csv.open(encoding='utf-8') as source:
+            rows=list(csv.DictReader(source))
         with (args.output/'metrics.csv').open('w',newline='',encoding='utf-8')as stream:
             writer=csv.DictWriter(stream,fieldnames=['epoch','train/loss','mAP50','mAP50_95']);writer.writeheader()
             for row in rows:
@@ -98,7 +105,7 @@ def main():
     run.update(finishedAt=datetime.now(timezone.utc).isoformat(),completedEpochs=completed,plannedEpochs=args.epochs,
         completionReason=reason or 'epoch_limit_reached',convergenceClaim=False,elapsedTrainSeconds=time.monotonic()-started,
         actualBatch=model.trainer.batch_size,actualNominalAccumulate=model.trainer.accumulate,
-        note='Independent warm-start; soft budget stops only after validation and checkpoint. No convergence claim.')
+        note=run.get('initializationNote','Independent warm-start')+'; soft budget stops only after validation and checkpoint. No convergence claim.')
     atomic_json(args.output/'run.json',run)
 
 if __name__=='__main__':main()

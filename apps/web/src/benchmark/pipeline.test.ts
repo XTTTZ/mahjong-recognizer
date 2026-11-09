@@ -16,3 +16,14 @@ describe('portable browser postprocess contract',()=>{
  it('rejects malformed/nonfinite outputs',()=>{expect(()=>nms(new Float32Array(3),960,960)).toThrow();const a=raw();a[0]=NaN;expect(()=>nms(a,960,960)).toThrow();});
  it('stable softmax returns the actual top probability',()=>{const a=new Float32Array(42).fill(-1000);a[6]=1000;a[8]=1000;expect(classify(a,0)).toEqual({index:6,probability:.5});a[10]=NaN;expect(()=>classify(a,0)).toThrow();});
 });
+
+describe('variablecompactdetectorgeometry',()=>{
+ it('usesrawheadsfor640/800/960 without changinginversegeometry',()=>{
+  for(const size of [640,800,960]){
+   const count=[8,16,32].reduce((n,s)=>n+(size/s)**2,0),a=new Float32Array(5*count),g=detectorGeometry(1234,777,size);
+   [100*g.gainX+g.padX,200*g.gainY+g.padY,20*g.gainX,40*g.gainY,.9].forEach((v,j)=>{a[j*count]=v;});
+   const[b]=nms(a,1234,777,size);expect(b.bbox[0]).toBeCloseTo(90,3);expect(b.bbox[1]).toBeCloseTo(180,3);expect(b.bbox[2]).toBeCloseTo(20,3);expect(b.bbox[3]).toBeCloseTo(40,3);
+   expect(()=>nms(a.subarray(1),1234,777,size)).toThrow();
+  }
+ });
+});

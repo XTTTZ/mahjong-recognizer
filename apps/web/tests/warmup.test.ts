@@ -29,6 +29,17 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('optional visible-page GPU warmup', () => {
+  it('deduplicates each selected mode independently and does not warm the unselected service', async () => {
+    browser(); const fetch = vi.fn().mockImplementation(async () => new Response(null, { status: 202 }));
+    vi.stubGlobal('fetch', fetch);
+    const { warmupWhenVisible } = await import('../src/warmup');
+    warmupWhenVisible('fast')(); warmupWhenVisible('fast')();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(fetch.mock.calls.map(call => call[0])).toEqual(['/api/warmup?mode=fast']);
+    warmupWhenVisible('precision')(); warmupWhenVisible('fast')();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(fetch.mock.calls.map(call => call[0])).toEqual(['/api/warmup?mode=fast', '/api/warmup']);
+  });
   it('keeps the response-body read bounded after headers have already arrived', async () => {
     browser();
     let body!: ReadableStreamDefaultController<Uint8Array>;

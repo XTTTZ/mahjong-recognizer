@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from './icons';
-import { recognize, RecognitionError, serviceConfigured } from './api';
+import { recognize, RecognitionError, serviceAvailability } from './api';
 import { cropPhoto, preparePhoto, rotatePhoto } from './photo';
 import { canonicalCropEdges, isFullCrop, rotateCropClockwise, type CropEdges } from './crop';
 import { CropDialog } from './CropDialog';
 import { TileFace, WelcomeTiles } from './TileFace';
 import { ScoringPanel } from './ScoringPanel';
 import { warmupWhenVisible } from './warmup';
-import type { PreparedPhoto, RecognitionResult, TileCorrection, TilePrediction } from './types';
+import type { PreparedPhoto, RecognitionMode, RecognitionResult, ServiceAvailability, TileCorrection, TilePrediction } from './types';
 
 const numbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
 const correctionGroups = [
@@ -35,7 +35,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [slow, setSlow] = useState(false);
   const [offline, setOffline] = useState(!navigator.onLine);
-  const [configured, setConfigured] = useState<boolean | null>(null);
+  const [availability, setAvailability] = useState<ServiceAvailability | null>(null);
+  const [mode, setMode] = useState<RecognitionMode>('fast');
   const [infoOpen, setInfoOpen] = useState(false);
   const [selectedTile, setSelectedTile] = useState<string | null>(null);
   const [corrections, setCorrections] = useState<Record<string, TileCorrection>>({});
@@ -51,13 +52,27 @@ function App() {
   const libraryRef = useRef<HTMLInputElement>(null);
   const requestRef = useRef<AbortController | null>(null);
   const generationRef = useRef(0);
+  const modeChosen = useRef(false);
   const photoRef = useRef<PreparedPhoto | null>(null);
   const originalPhotoRef = useRef<PreparedPhoto | null>(null);
   const correctionDialog = useRef<HTMLDialogElement>(null);
   const resultSection = useRef<HTMLElement>(null);
   const busy = state !== 'idle';
+  const configured = availability === null ? null : mode === 'fast' ? availability.fastConfigured : availability.configured;
 
-  useEffect(() => warmupWhenVisible(), []);
+  useEffect(() => {
+    if (!availability || busy || result) return;
+    setMode(previous => {
+      if (previous === 'fast' && !availability.fastConfigured) return 'precision';
+      if (previous === 'precision' && !availability.configured && availability.fastConfigured) return 'fast';
+      return !modeChosen.current && availability.fastConfigured ? 'fast' : previous;
+    });
+  }, [availability, busy, result]);
+  useEffect(() => {
+    // Discover configuration before any page-open model load. The fast default
+    // must never start the other service just because its health check is slow.
+    if (configured === true && !busy) return warmupWhenVisible(mode);
+  }, [configured, mode, busy]);
   useEffect(() => {
     if (result) resultSection.current?.focus({ preventScroll: true });
   }, [result?.requestId]);
@@ -71,8 +86,8 @@ function App() {
   useEffect(() => {
     const healthController = new AbortController();
     const refreshHealth = () => {
-      void serviceConfigured(healthController.signal).then(value => {
-        if (!healthController.signal.aborted) setConfigured(value);
+      void serviceAvailability(healthController.signal).then(value => {
+        if (!healthController.signal.aborted) setAvailability(value);
       });
     };
     const update = () => { setOffline(!navigator.onLine); if (navigator.onLine) refreshHealth(); };
@@ -127,6 +142,15 @@ function App() {
     requestRef.current = null;
     setSlow(false);
     return generationRef.current;
+  };
+
+  const chooseMode = (next: RecognitionMode) => {
+    if (busy || next === mode) return;
+    modeChosen.current = true;
+    invalidate();
+    replacePhotoPair(photoRef.current, originalPhotoRef.current);
+    setMode(next);
+    setError(null);
   };
 
   const choosePhoto = async (file?: File) => {
@@ -218,9 +242,9 @@ function App() {
     setLastAdded(null);
     setError(null);
     try {
-      const response = await recognize(photo.file, controller.signal);
+      const response = await recognize(photo.file, controller.signal, mode);
       if (generation !== generationRef.current) return;
-      setResult(response);
+      setResult({ ...response, recognitionMode: mode });
     } catch (cause) {
       if (generation !== generationRef.current) return;
       if (timedOut) setError('等待时间较长，已停止等待。原请求可能仍在处理，请稍后再试。');
@@ -299,6 +323,13 @@ function App() {
       {!photo && <section className="intro"><span className="eyebrow">把手牌，看清楚</span><h1>拍下手牌，<br />一眼看清。</h1><p>对准麻将牌面，拍照或上传即可识别。</p></section>}
 
       {!result && <p className="trial-note">试用模型 · 结果请逐张核对</p>}
+      <section className="recognition-mode" aria-label="识别方式">
+        <div className="recognition-modes" role="group" aria-label="选择识别方式">
+          <button className={`mode-button ${mode === 'fast' ? 'selected' : ''}`} aria-pressed={mode === 'fast'} disabled={busy || availability?.fastConfigured === false} onClick={() => chooseMode('fast')}>快速识别</button>
+          <button className={`mode-button ${mode === 'precision' ? 'selected' : ''}`} aria-pressed={mode === 'precision'} disabled={busy || availability?.configured === false} onClick={() => chooseMode('precision')}>精细识别</button>
+        </div>
+        <p>{mode === 'fast' ? '更快、更轻巧，复杂照片请仔细核对。' : '适合复杂照片，首次识别可能需要多等一会儿。'}</p>
+      </section>
       {result && <nav className="result-navigation" aria-label="结果快速导航"><a href="#hand-review" onClick={e => { e.preventDefault(); jumpTo('hand-review'); }}>核对 {visibleTiles.length} 张牌</a><a href="#hand-score" onClick={e => { e.preventDefault(); jumpTo('hand-score'); }}>胡牌 / 听牌</a></nav>}
       {configured === false && <p className="notice service-notice" role="status"><Icon name="info" size={18} />识别服务准备中，暂可拍照、选图和裁剪。</p>}
 
@@ -357,7 +388,7 @@ function App() {
         <div className="hand-edit-actions"><button className="secondary-button" disabled={visibleTiles.length >= 18} onClick={() => { setSelectedTile(null); setLastAdded(null); setAddingTile(true); }}>＋ 添加麻将牌</button><span>漏牌可补入，多牌可点牌面删除</span></div>
         <div id="hand-score" tabIndex={-1}><ScoringPanel tiles={scoringTiles} resetKey={`${result.requestId}:${handReset}`} /></div>
         <div className="result-actions"><button className="primary-button" onClick={() => cameraRef.current?.click()}><Icon name="camera" size={20} />再拍一张</button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />换照片</button></div>
-        <details className="result-details"><summary>识别详情</summary><dl><div><dt>模型版本</dt><dd>{result.modelVersion}</dd></div><div><dt>处理耗时</dt><dd>{(result.timings.totalMs / 1000).toFixed(1)} 秒</dd></div><div><dt>请求编号</dt><dd>{result.requestId}</dd></div></dl></details>
+        <details className="result-details"><summary>识别详情</summary><dl><div><dt>识别方式</dt><dd>{result.recognitionMode === 'fast' ? '快速识别' : '精细识别'}</dd></div><div><dt>模型版本</dt><dd>{result.modelVersion}</dd></div><div><dt>处理耗时</dt><dd>{(result.timings.totalMs / 1000).toFixed(1)} 秒</dd></div><div><dt>请求编号</dt><dd>{result.requestId}</dd></div></dl></details>
       </section>}
 
       <footer className="footer">
@@ -365,7 +396,7 @@ function App() {
         <nav aria-label="开源与模型" className="source-links">
           <a href="https://github.com/XTTTZ/mahjong-recognizer" target="_blank" rel="noopener noreferrer">完整源码 · AGPL-3.0</a>
           <a href="https://github.com/XTTTZ/mahjong-recognizer/releases/tag/model-v4-20261027" target="_blank" rel="noopener noreferrer">模型下载</a>
-          <a href="/benchmark">设备性能测试</a>
+          <a href="/benchmark">本机测试</a>
         </nav>
       </footer>
     </main>

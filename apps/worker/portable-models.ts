@@ -1,9 +1,13 @@
 /** Public, immutable model assets; this gateway never handles photos or credentials. */
 const RELEASE = 'https://github.com/XTTTZ/mahjong-recognizer/releases/download/runtime-onnx-fp32-20261030/';
+const COMPACT_RELEASE = 'https://github.com/XTTTZ/mahjong-recognizer/releases/download/runtime-compact-fp32-20261109/';
 const FILES = new Map([
   ['/models/portable-v1/manifest.json', 'manifest.json'],
   ['/models/portable-v1/detector.onnx', 'detector.onnx'],
   ['/models/portable-v1/classifier.onnx', 'classifier.onnx'],
+  ['/models/compact-v10/manifest.json', new URL('manifest.json', COMPACT_RELEASE).href],
+  ['/models/compact-v10/detector.onnx', new URL('detector.onnx', COMPACT_RELEASE).href],
+  ['/models/compact-v10/classifier.onnx', new URL('classifier.onnx', COMPACT_RELEASE).href],
 ]);
 const HOSTS = new Set(['github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com']);
 

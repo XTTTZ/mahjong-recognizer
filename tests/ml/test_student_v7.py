@@ -12,7 +12,7 @@ from unittest.mock import patch
 from infra.windows.prepare_efficiency_suite_v7 import make_suite,write_plan,bundle
 from infra.windows.offline_bundle import verify
 from infra.windows.validate_cli import validate
-from ml.train.student_common import calibration_indices,validate_recipe,WEIGHTS_FILENAME
+from ml.train.student_common import calibration_indices,validate_recipe,validate_geometry,WEIGHTS_FILENAME
 from ml.train.yolo_train import checkpoint_receipt
 from ml.train.provenance import dataset_contract,sha256
 from ml.data.prepare_crops import prepare as prepare_crops
@@ -78,8 +78,55 @@ class StudentPolicies(unittest.TestCase):
     def test_invalid_student_recipes_fail_before_tensor_execution(self):
         config={'resolution':224,'context':.08,'distillationAlpha':.5,'temperature':2,'teacherMinimumConfidence':.7,'epochs':20,'batch':16,'gradientAccumulation':2,'workers':2,'lr':.0003,'maximumTrainMinutes':40}
         self.assertEqual(validate_recipe(config),config)
-        for key,value in [('resolution',320),('context',.2),('distillationAlpha',1),('temperature',float('nan')),('lr',0),('maximumTrainMinutes',float('inf'))]:
+        small=dict(config,resolution=192)
+        self.assertEqual(validate_recipe(small),small)
+        for key,value in [('resolution',160),('resolution',320),('context',.2),('distillationAlpha',1),('temperature',float('nan')),('lr',0),('maximumTrainMinutes',float('inf'))]:
             with self.subTest(key=key),self.assertRaises(ValueError):validate_recipe(dict(config,**{key:value}))
+
+    def test_evaluation_geometry_uses_signed_resolution_and_rejects_mismatch(self):
+        from ml.eval.student_evaluate_v7 import classifier_geometry
+        for resolution in (192,224):
+            with self.subTest(resolution=resolution):
+                config={'resolution':resolution,'context':.08}
+                self.assertEqual(classifier_geometry({'resolution':resolution,'config':config}),
+                    {'classifierResolution':resolution,'cropContext':.08})
+                with self.assertRaisesRegex(ValueError,'signed config'):
+                    classifier_geometry({'resolution':320,'config':config})
+        with self.assertRaises(ValueError):validate_geometry({'resolution':160,'context':.08})
+
+    def test_new_student_argument_boundaries_remain_offline(self):
+        for resolution in ('192','224'):
+            train=['python','-m','ml.train.student_train_v7']
+            for flag in ('dataset','crops','cache','weights','teacher-run','teacher-checkpoint','output'):
+                train+=['--'+flag,'/not/read']
+            train+=['--resolution',resolution,'--preflight-only']
+            self.assertEqual(validate(train)['state'],'argv_parsed_only')
+        evaluate=['python','-m','ml.eval.student_evaluate_v7']
+        for flag in ('dataset','run','checkpoint','detector-run','detector-checkpoint','out'):
+            evaluate+=['--'+flag,'/not/read']
+        self.assertEqual(validate(evaluate+['--locked-operating-point'])['state'],'argv_parsed_only')
+
+    def test_legacy_fx_rejects192_before_tensor_execution_or_output(self):
+        import builtins
+        from ml.train import student_quantize_v7
+        from ml.train.student_common import ARCHITECTURE
+        original_import=builtins.__import__
+        def guard(name,*args,**kwargs):
+            if name=='torch' or name.startswith('torch.'):
+                raise AssertionError('Rejected quantization imported torch')
+            return original_import(name,*args,**kwargs)
+        with tempfile.TemporaryDirectory()as tmp:
+            root=Path(tmp);run=root/'run.json';detector=root/'detector.json';selection=root/'selection.json'
+            detector.write_text(json.dumps({'finishedAt':'fixture','generic':True}));selection.write_text('{}')
+            argv=['quantize','--run',str(run),'--detector-run',str(detector),'--selection',str(selection),'--output',str(root/'unused')]
+            for flag in ('dataset','crops','cache','detector-checkpoint'):argv+=['--'+flag,str(root/'not-used')]
+            for resolution,message in ((192,'only signed224'),(224,'Complete FP32')):
+                run.write_text(json.dumps({'architecture':ARCHITECTURE,'finishedAt':'fixture','resolution':resolution,'config':{'resolution':resolution}}))
+                with patch.object(sys,'argv',argv),patch.dict(os.environ),patch('builtins.__import__',side_effect=guard),\
+                    patch.object(student_quantize_v7,'dataset_contract',return_value={}),patch.object(student_quantize_v7,'verify_prepared'),\
+                    patch.object(student_quantize_v7,'verify_cache'),patch.object(student_quantize_v7,'check_evaluation_data'),self.assertRaisesRegex(ValueError,message):
+                    student_quantize_v7.main()
+                self.assertFalse((root/'unused').exists())
 
     def test_actual_student_preflight_checks_signed_data_without_importing_torch_or_test(self):
         from tests.ml.test_v6_preparation import fixture
@@ -103,9 +150,11 @@ class StudentPolicies(unittest.TestCase):
             def guard(name,*args,**kwargs):
                 if name=='torch'or name.startswith('torch.'):raise AssertionError('Preflight imported tensor runtime')
                 return original_import(name,*args,**kwargs)
-            stream=io.StringIO()
-            with patch.object(sys,'argv',argv),patch.object(student_train_v7,'WEIGHTS_SHA256',sha256(pretrained)),patch('builtins.__import__',side_effect=guard),contextlib.redirect_stdout(stream):student_train_v7.main()
-            result=json.loads(stream.getvalue());self.assertTrue(result['derivativeReady']);self.assertFalse(result['trainingStarted'])
+            for resolution in (192,224):
+                stream=io.StringIO()
+                with patch.object(sys,'argv',argv+['--resolution',str(resolution)]),patch.object(student_train_v7,'WEIGHTS_SHA256',sha256(pretrained)),patch('builtins.__import__',side_effect=guard),contextlib.redirect_stdout(stream):student_train_v7.main()
+                result=json.loads(stream.getvalue());self.assertTrue(result['derivativeReady']);self.assertFalse(result['trainingStarted'])
+                self.assertEqual(result['config']['resolution'],resolution)
             self.assertFalse((root/'unused').exists());self.assertEqual((root/'data/test/_annotations.coco.json').read_text(),'SEALED_DO_NOT_OPEN')
             pretrained.write_bytes(b'tampered')
             with patch.object(sys,'argv',argv),self.assertRaisesRegex(ValueError,'SHA256'):student_train_v7.main()

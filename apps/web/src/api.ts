@@ -1,4 +1,4 @@
-import type { RecognitionResult } from './types';
+import type { RecognitionMode, RecognitionResult, ServiceAvailability } from './types';
 
 export class RecognitionError extends Error {
   constructor(message: string, readonly code: string, readonly requestId?: string) {
@@ -9,11 +9,17 @@ export class RecognitionError extends Error {
 
 /** This only checks gateway configuration; it never starts the inference GPU. */
 export async function serviceConfigured(signal: AbortSignal): Promise<boolean | null> {
+  return (await serviceAvailability(signal))?.configured ?? null;
+}
+
+/** Configuration discovery has no inference or warmup side effects. */
+export async function serviceAvailability(signal: AbortSignal): Promise<ServiceAvailability | null> {
   try {
     const response = await fetch('/api/health', { signal, cache: 'no-store', credentials: 'same-origin' });
     if (!response.ok) return null;
     const value: unknown = await response.json();
-    return isRecord(value) && typeof value.configured === 'boolean' ? value.configured : null;
+    return isRecord(value) && typeof value.configured === 'boolean'
+      ? { configured: value.configured, fastConfigured: value.fastConfigured === true } : null;
   } catch { return null; }
 }
 
@@ -30,7 +36,8 @@ export function parseResult(value: unknown): RecognitionResult {
     || !Number.isFinite(value.image.height) || Number(value.image.width) <= 0
     || Number(value.image.height) <= 0 || !Number.isFinite(value.timings.totalMs)
     || !['ok', 'needs_retake'].includes(String(value.quality.status))
-    || !Array.isArray(value.quality.reasons) || !value.quality.reasons.every(x => typeof x === 'string')) {
+    || !Array.isArray(value.quality.reasons) || !value.quality.reasons.every(x => typeof x === 'string')
+    || (value.recognitionMode !== undefined && !['fast', 'precision'].includes(String(value.recognitionMode)))) {
     throw new RecognitionError('识别结果暂时无法读取，请稍后重试。', 'INVALID_RESPONSE');
   }
   const ids = new Set<string>();
@@ -50,10 +57,10 @@ export function parseResult(value: unknown): RecognitionResult {
   return value as unknown as RecognitionResult;
 }
 
-export async function recognize(file: File, signal: AbortSignal): Promise<RecognitionResult> {
+export async function recognize(file: File, signal: AbortSignal, mode: RecognitionMode = 'precision'): Promise<RecognitionResult> {
   const body = new FormData();
   body.append('image', file);
-  const response = await fetch('/api/recognize', {
+  const response = await fetch(mode === 'fast' ? '/api/recognize?mode=fast' : '/api/recognize', {
     method: 'POST', body, signal, credentials: 'same-origin', cache: 'no-store',
     headers: { Accept: 'application/json' },
   });

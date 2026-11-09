@@ -13,13 +13,54 @@ function environment(overrides: Record<string, unknown> = {}): Env {
   } as Env;
 }
 
-function upload(headers: Record<string, string> = {}): Request {
-  return new Request('https://mahjong.example/api/recognize', { method: 'POST', body: 'test-image',
+function upload(headers: Record<string, string> = {}, query = ''): Request {
+  return new Request('https://mahjong.example/api/recognize' + query, { method: 'POST', body: 'test-image',
     headers: { 'Content-Type': 'multipart/form-data; boundary=fixture', ...headers } });
 }
 
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 describe('upload gateway', () => {
+  it('routes explicit fast requests to CPU only and keeps legacy requests on precision', async () => {
+    const fetch = vi.fn(async (_url: URL, init: RequestInit) => {
+      await new Response(init.body).text();
+      return Response.json({ modelVersion: 'provided-by-upstream', tiles: [] });
+    });
+    vi.stubGlobal('fetch', fetch);
+    const env = environment({ CPU_MODAL_URL: 'https://cpu-example.modal.run/recognize' });
+    const fast = await recognize(upload({}, '?mode=fast'), env);
+    expect(await fast.json()).toMatchObject({ modelVersion: 'provided-by-upstream', recognitionMode: 'fast' });
+    await recognize(upload(), env);
+    expect(fetch.mock.calls.map(call => call[0].href)).toEqual([
+      'https://cpu-example.modal.run/recognize', 'https://example--recognize.modal.run/',
+    ]);
+    expect(fetch.mock.calls[0][1].headers).toMatchObject({ Authorization: 'Bearer test-proxy-token' });
+  });
+  it('rejects unavailable fast mode and ambiguous modes without falling back or spending quotas', async () => {
+    const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
+    const limit = vi.fn(async () => ({ success: true }));
+    const env = environment({ USER_LIMIT: { limit }, SITE_LIMIT: { limit } });
+    const fast = await recognize(upload({}, '?mode=fast'), env);
+    expect(fast.status).toBe(503); expect(await fast.text()).toContain('手动切换为精细识别');
+    expect((await recognize(upload({}, '?mode=other'), env)).status).toBe(400);
+    expect((await recognize(upload({}, '?mode=fast&mode=precision'), env)).status).toBe(400);
+    expect(fetch).not.toHaveBeenCalled(); expect(limit).not.toHaveBeenCalled();
+  });
+  it('reports fast configuration without invoking either inference service', async () => {
+    const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
+    const request = new Request('https://mahjong.example/api/health');
+    const env = environment({ MODAL_URL: '', CPU_MODAL_URL: 'https://cpu-example.modal.run/recognize' });
+    expect(await (await worker.fetch(request, env)).json()).toMatchObject({ configured: false, fastConfigured: true });
+    expect(await (await worker.fetch(request, environment({ CPU_MODAL_URL: 'https://bad.example/recognize' }))).json())
+      .toMatchObject({ configured: true, fastConfigured: false });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it('never retries a failed CPU upload on the other service', async () => {
+    const fetch = vi.fn(async () => new Response('upstream unavailable', { status: 503 }));
+    vi.stubGlobal('fetch', fetch);
+    expect((await recognize(upload({}, '?mode=fast'), environment({ CPU_MODAL_URL: 'https://cpu-example.modal.run/recognize' }))).status).toBe(503);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls[0][0].hostname).toBe('cpu-example.modal.run');
+  });
   it.each([{ readyAt: 75_000, status: 200 }, { readyAt: 100_000, status: 504 }])(
     'waits for a slow cold start but bounds the request: $readyAt ms', async ({ readyAt, status }) => {
       vi.useFakeTimers();
@@ -109,6 +150,14 @@ describe('upload gateway', () => {
 describe('page-open warmup admission', () => {
   const request = (headers: Record<string, string> = {}) => new Request('https://mahjong.example/api/warmup', {
     method: 'POST', headers: { Origin: 'https://mahjong.example', ...headers },
+  });
+  it('warms only CPU when fast is selected and returns unavailable without fallback when CPU is absent', async () => {
+    const fetch = vi.fn(async () => Response.json({ loaded: true })); vi.stubGlobal('fetch', fetch);
+    const fast = () => new Request('https://mahjong.example/api/warmup?mode=fast', { method: 'POST' });
+    expect((await warmup(fast(), environment({ CPU_MODAL_URL: 'https://cpu-example.modal.run/recognize?private=1' }))).status).toBe(200);
+    expect(fetch.mock.calls[0][0].href).toBe('https://cpu-example.modal.run/health');
+    expect((await warmup(fast(), environment())).status).toBe(503);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
   it('loads only the authenticated model health endpoint, strips query, and returns no secret', async () => {
     const fetch = vi.fn(async (_url: URL, _init: RequestInit) => Response.json({ loaded: true }));

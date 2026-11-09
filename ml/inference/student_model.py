@@ -2,11 +2,12 @@
 import json
 from pathlib import Path
 from ml.inference.cascade_model import RawCascade
-from ml.train.student_common import ARCHITECTURE, build_student
+from ml.train.student_common import ARCHITECTURE, build_student, validate_geometry
 
 
 class RawStudentCascade(RawCascade):
     def __init__(self, detector, checkpoint, classes, config, device='cpu', scripted=None):
+        validate_geometry(config)
         import torch
         self.detector, self.classes, self.device = detector, classes, device
         self.resolution, self.context = config['resolution'], config['context']

@@ -10,10 +10,13 @@ class Handler(SimpleHTTPRequestHandler):
     def translate_path(self,path):
         clean=urlsplit(path).path
         if clean in ('/benchmark','/benchmark/'):return str(Path(self.directory)/'index.html')
-        if clean.startswith('/models/portable-v1/'):
-            name=clean.removeprefix('/models/portable-v1/')
-            if name in ('manifest.json','detector.onnx','classifier.onnx'):return str(self.server.models/name)
-            return str(Path(self.directory)/'missing-model')
+        for profile,directory in (('portable-v1',self.server.models),('compact-v10',self.server.compact_models)):
+            prefix='/models/'+profile+'/'
+            if clean.startswith(prefix):
+                name=clean.removeprefix(prefix)
+                if directory is not None and name in ('manifest.json','detector.onnx','classifier.onnx'):
+                    return str(directory/name)
+                return str(Path(self.directory)/'missing-model')
         return super().translate_path(path)
     def end_headers(self):
         clean=urlsplit(self.path).path
@@ -25,6 +28,9 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--models',type=Path,required=True);p.add_argument('--port',type=int,default=4174);a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--models',type=Path,required=True);p.add_argument('--compact-models',type=Path);p.add_argument('--port',type=int,default=4174);a=p.parse_args()
+    for directory in (a.models,a.compact_models):
+        if directory is not None and not all((directory/name).is_file() for name in ('manifest.json','detector.onnx','classifier.onnx')):
+            p.error('Each configured profile needs all three local files')
     server=ThreadingHTTPServer(('127.0.0.1',a.port),partial(Handler,directory=str(Path('dist').resolve())))
-    server.models=a.models.resolve();server.serve_forever()
+    server.models=a.models.resolve();server.compact_models=a.compact_models.resolve() if a.compact_models else None;server.serve_forever()

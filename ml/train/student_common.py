@@ -2,14 +2,20 @@
 import math
 
 ARCHITECTURE = 'mobilenet-v3-large'
+RESOLUTIONS = (192, 224)
 WEIGHTS_FILENAME = 'mobilenet_v3_large-5c1a4163.pth'
 WEIGHTS_URL = 'https://download.pytorch.org/models/' + WEIGHTS_FILENAME
 WEIGHTS_SHA256 = '5c1a416349c4cf298f2a6a5e2600ed0ee55e604713578f5e74e6bc8bcaef7997'
 
 
+def validate_geometry(config):
+    if config['resolution'] not in RESOLUTIONS or not 0 <= config['context'] <= .16:
+        raise ValueError('Reviewed student uses complete192/224 crops with context0..0.16')
+    return config
+
+
 def validate_recipe(config):
-    if config['resolution'] != 224 or not 0 <= config['context'] <= .16:
-        raise ValueError('Reviewed student uses complete224 crops with context0..0.16')
+    validate_geometry(config)
     if not 0 <= config['distillationAlpha'] < 1 or not 1 <= config['temperature'] <= 10:
         raise ValueError('Invalid distillation recipe')
     if not 0 <= config['teacherMinimumConfidence'] <= 1:

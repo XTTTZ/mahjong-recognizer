@@ -74,6 +74,8 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--threads', type=int, default=2)
     parser.add_argument('--max-candidates', type=int, default=4)
+    parser.add_argument('--locked-operating-point', action='store_true',
+                        help='Compare checkpoints only at production fused>.35 / acceptance .7')
     args = parser.parse_args()
     if bool(args.classifier) != bool(args.classifier_run) or not 1 <= args.threads <= 4 or not 1 <= args.max_candidates <= 4:
         raise ValueError('Supply a complete classifier pair and1..4 CPU threads')
@@ -130,7 +132,10 @@ def main():
                     scoreFusion='detector_probability_times_classifier_probability', localizationScope='predicted_detector_boxes',
                     sourceClassifierTrainingStatus=classifier_status)
             destination = args.out / f'candidate-{index:02d}'
-            report = evaluate(predictor, args.dataset, destination, metadata)
+            locked = dict(thresholds=(.35,), accept_threshold=.7, select_threshold=False) if args.locked_operating_point else {}
+            report = evaluate(predictor, args.dataset, destination, metadata, **locked)
+            if args.locked_operating_point and (report.get('partial') or report['inferenceFailedImages']):
+                raise RuntimeError('Locked candidate requires complete failure-free validation')
             if sha256(checkpoint) != digest or (classifier and sha256(classifier) != classifier_digest):
                 raise ValueError('Checkpoint changed during recovery evaluation')
             row.update(state='succeeded', report=str(destination / 'report.json'), ranking=ranking(report), inferenceFailedImages=report['inferenceFailedImages'])
@@ -152,9 +157,11 @@ def main():
     report = json.loads(Path(winner['report']).read_text())
     report.update(selectedCheckpoint=winner['checkpoint'], selectedClassifier=winner['classifier'],
                   candidateReports=rows, checkpointCandidatesTotal=len(pairs), checkpointCandidatesEvaluated=len(rows),
-                  checkpointSelectionComplete=len(rows)==len(pairs), recoveryEvaluationFinished=True,
+                  checkpointSelectionComplete=len(winners)==len(pairs), recoveryEvaluationFinished=True,
                   recoveryFinishedAt=datetime.now(timezone.utc).isoformat())
     atomic_json(args.out / 'report.json', report)
+    if args.locked_operating_point and len(winners) != len(pairs):
+        raise RuntimeError('Incomplete locked candidate selection retained; refusing successful queue step')
     print(json.dumps({'event': 'cpu_recovery_completed', 'out': str(args.out), 'trainingStarted': False}), flush=True)
 
 

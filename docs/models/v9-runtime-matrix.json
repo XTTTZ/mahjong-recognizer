@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "preparedDate": "2026-11-06",
+  "status": "prepared_not_executed",
+  "productionChanges": false,
+  "evaluationSplit": "frozen_valid_150_only",
+  "target": {"scope": "13_or_14_tiles_warm_full_pipeline", "p95Milliseconds": 2000, "reportFirstLoadColdStartNetworkSeparately": true},
+  "quality": {"protectBaselineAutomaticExactIds": true, "protectBaselineModelExactIds": true, "newWrongAcceptsAllowed": 0, "fusedStrictGreaterThan": 0.35, "accept": 0.7, "inferenceFailuresAllowed": 0},
+  "stages": [
+    {"order": 1, "name": "signed-fp32-export", "entrypoint": "infra.portable.candidate_export", "implemented": true, "trainingEnvironmentMutationAllowed": false},
+    {"order": 2, "name": "paired-cpu", "entrypoint": "infra.portable.candidate_benchmark", "implemented": true, "physicalCores": [2,1], "batchSizes": [4,1,8], "repeatsPerImage": 2, "cloudRequiresExplicitFlag": true, "maximumCloudJobSeconds": 1800},
+    {"order": 3, "name": "physical-phone", "engines": ["wasm-fp32", "webgpu-fp32"], "devices": ["iPhone Safari", "mainstream Android Chrome"], "candidateBrowserProfileAdaptationRequired": true, "firstDownloadAndCachedRunSeparated": true},
+    {"order": 4, "name": "precision-ablation-after-fp32-gate", "implemented": false, "recipes": ["classifier-only QDQ static INT8", "detector-only QDQ static INT8", "WebGPU or TensorRT FP16"], "calibrationSplit": "train_only", "classesRequired": 42, "legacyFxInt8Repeated": false, "automaticQat": false},
+    {"order": 5, "name": "cheaper-gpu-fallback", "devices": ["L4","T4"], "targetSpecificTensorRTEngineRequired": true, "coldStartAndBilledContainerSecondsRequired": true, "currentA10KeptUntilValidation": true}
+  ]
+}

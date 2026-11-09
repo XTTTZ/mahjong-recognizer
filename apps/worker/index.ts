@@ -16,7 +16,26 @@ function error(requestId: string, status: number, code: string, message: string)
   return json({ requestId, error: { code, message } }, status);
 }
 
-/** A page visit can start model loading; it never submits a photograph. */
+type RecognitionMode = 'fast' | 'precision';
+
+function requestMode(request: Request): RecognitionMode | null {
+  const modes = new URL(request.url).searchParams.getAll('mode');
+  if (!modes.length) return 'precision'; // Existing clients retain the original service.
+  return modes.length === 1 && (modes[0] === 'fast' || modes[0] === 'precision') ? modes[0] : null;
+}
+
+function inferenceUrl(env: Env, mode: RecognitionMode): URL | null {
+  if (env.INFERENCE_ENABLED !== 'true' || !env.MODAL_PROXY_TOKEN) return null;
+  const address = mode === 'fast' ? (env as Env & { CPU_MODAL_URL?: string }).CPU_MODAL_URL : env.MODAL_URL;
+  if (!address) return null;
+  try {
+    const url = new URL(address);
+    if (url.protocol !== 'https:' || !url.hostname.endsWith('.modal.run') || url.username || url.password) return null;
+    return url;
+  } catch { return null; }
+}
+
+/** A page visit can load the selected service; it never submits a photograph. */
 export async function warmup(request: Request, env: Env): Promise<Response> {
   const requestId = crypto.randomUUID();
   if (request.method !== 'POST') return error(requestId, 405, 'METHOD', '请从本站打开识别页面。');
@@ -26,15 +45,12 @@ export async function warmup(request: Request, env: Env): Promise<Response> {
     || request.headers.get('Sec-Fetch-Site') === 'cross-site') {
     return error(requestId, 403, 'ORIGIN', '请从本站打开识别页面。');
   }
-  if (env.INFERENCE_ENABLED !== 'true' || !env.MODAL_URL || !env.MODAL_PROXY_TOKEN) {
-    return json({ ready: false }, 503);
-  }
-  let upstream: URL;
-  try {
-    upstream = new URL(env.MODAL_URL);
-    if (upstream.protocol !== 'https:' || !upstream.hostname.endsWith('.modal.run')) throw new Error('configuration');
-    upstream.pathname = '/health'; upstream.search = ''; upstream.hash = '';
-  } catch { return json({ ready: false }, 503); }
+  const mode = requestMode(request);
+  if (!mode) return json({ ready: false }, 400);
+  const upstream = inferenceUrl(env, mode);
+  const token = env.MODAL_PROXY_TOKEN;
+  if (!upstream || !token) return json({ ready: false }, 503);
+  upstream.pathname = '/health'; upstream.search = ''; upstream.hash = '';
   const [user, site] = await Promise.all([
     env.WARM_USER_LIMIT.limit({ key: request.headers.get('CF-Connecting-IP') ?? 'local' }),
     env.WARM_SITE_LIMIT.limit({ key: 'warmup' }),
@@ -45,9 +61,9 @@ export async function warmup(request: Request, env: Env): Promise<Response> {
   const started = Date.now();
   try {
     const response = await fetch(upstream, { method: 'GET', redirect: 'manual', signal: abort.signal,
-      headers: { Authorization: `Bearer ${env.MODAL_PROXY_TOKEN}`, 'X-Request-ID': requestId } });
+      headers: { Authorization: `Bearer ${token}`, 'X-Request-ID': requestId } });
     await response.body?.cancel();
-    console.log(JSON.stringify({ event: 'warmup', requestId, status: response.status, elapsedMs: Date.now() - started }));
+    console.log(JSON.stringify({ event: 'warmup', requestId, mode, status: response.status, elapsedMs: Date.now() - started }));
     return json({ ready: response.ok }, response.ok ? 200 : 503);
   } catch {
     return json({ ready: false }, 503);
@@ -59,7 +75,8 @@ export async function recognize(request: Request, env: Env): Promise<Response> {
   if (request.method !== 'POST') return error(requestId, 405, 'METHOD', '请使用上传入口。');
   const origin = request.headers.get('Origin');
   const allowed = env.ALLOWED_ORIGINS.split(',').map(v => v.trim()).filter(Boolean);
-  if (origin && origin !== new URL(request.url).origin && !allowed.includes(origin)) {
+  if ((origin && origin !== new URL(request.url).origin && !allowed.includes(origin))
+    || request.headers.get('Sec-Fetch-Site') === 'cross-site') {
     return error(requestId, 403, 'ORIGIN', '请从本站上传照片。');
   }
   const type = request.headers.get('Content-Type') ?? '';
@@ -71,15 +88,12 @@ export async function recognize(request: Request, env: Env): Promise<Response> {
     return error(requestId, 413, 'TOO_LARGE', '图片过大，请选择小于 12 MB 的照片。');
   }
   if (!request.body) return error(requestId, 400, 'EMPTY', '尚未选择照片。');
-  if (env.INFERENCE_ENABLED !== 'true' || !env.MODAL_URL || !env.MODAL_PROXY_TOKEN) {
-    return error(requestId, 503, 'UNAVAILABLE', '识别服务正在准备，请稍后再试。');
-  }
-  let upstream: URL;
-  try { upstream = new URL(env.MODAL_URL); }
-  catch { return error(requestId, 503, 'CONFIGURATION', '识别服务暂不可用。'); }
-  if (upstream.protocol !== 'https:' || !upstream.hostname.endsWith('.modal.run')) {
-    return error(requestId, 503, 'CONFIGURATION', '识别服务暂不可用。');
-  }
+  const mode = requestMode(request);
+  if (!mode) return error(requestId, 400, 'MODE', '请选择一种识别方式。');
+  const upstream = inferenceUrl(env, mode);
+  const token = env.MODAL_PROXY_TOKEN;
+  if (!upstream || !token) return error(requestId, 503, 'UNAVAILABLE', mode === 'fast'
+    ? '快速识别暂不可用，可手动切换为精细识别。' : '识别服务正在准备，请稍后再试。');
   const ip = request.headers.get('CF-Connecting-IP') ?? 'local';
   const [userLimit, siteLimit] = await Promise.all([
     env.USER_LIMIT.limit({ key: ip }), env.SITE_LIMIT.limit({ key: 'recognize' }),
@@ -111,7 +125,7 @@ export async function recognize(request: Request, env: Env): Promise<Response> {
   try {
     const response = await fetch(upstream, {
       method: 'POST', body: bounded, redirect: 'manual', signal: abort.signal,
-      headers: { 'Content-Type': type, 'Authorization': `Bearer ${env.MODAL_PROXY_TOKEN}`,
+      headers: { 'Content-Type': type, 'Authorization': `Bearer ${token}`,
         'X-Request-ID': requestId },
     });
     phase = 'response';
@@ -144,25 +158,27 @@ export async function recognize(request: Request, env: Env): Promise<Response> {
         415: '此图片格式暂不支持，请使用 JPEG、PNG 或 WebP。',
         422: '图片内容无法处理，请重新拍摄。', 429: '识别服务繁忙，请稍后再试。',
       };
-      return error(requestId, status, 'INFERENCE', messages[status] ?? '识别服务暂不可用，请稍后再试。');
+      return error(requestId, status, 'INFERENCE', messages[status] ?? (mode === 'fast'
+        ? '快速识别暂不可用，可手动切换为精细识别。' : '识别服务暂不可用，请稍后再试。'));
     }
     phase = 'decode';
     const result: unknown = JSON.parse(new TextDecoder().decode(buffer));
     if (!result || typeof result !== 'object' || !('tiles' in result) || !Array.isArray(result.tiles)) {
       return error(requestId, 502, 'INVALID_RESULT', '识别结果异常，请重新拍摄。');
     }
-    console.log(JSON.stringify({ event: 'recognize', requestId, bytes, elapsedMs: Date.now() - started, status: 200 }));
-    return json({ ...result, requestId });
+    console.log(JSON.stringify({ event: 'recognize', requestId, mode, bytes, elapsedMs: Date.now() - started, status: 200 }));
+    return json({ ...result, requestId, recognitionMode: mode });
   } catch (cause) {
     const status = oversized ? 413 : abort.signal.aborted ? 504 : 503;
     // Fetch runtime messages describe transport errors. Never log response
     // parsing errors, which could quote upstream content, or request headers.
     const transportError = phase === 'request' && cause instanceof Error
-      ? cause.message.replaceAll(env.MODAL_PROXY_TOKEN, '[redacted]').slice(0, 200) : undefined;
-    console.warn(JSON.stringify({ event: 'recognize', requestId, bytes, elapsedMs: Date.now() - started, status,
+      ? cause.message.replaceAll(token, '[redacted]').slice(0, 200) : undefined;
+    console.warn(JSON.stringify({ event: 'recognize', requestId, mode, bytes, elapsedMs: Date.now() - started, status,
       phase, errorType: cause instanceof Error ? cause.name : 'unknown', transportError }));
     return error(requestId, status, oversized ? 'TOO_LARGE' : status === 504 ? 'TIMEOUT' : 'UNAVAILABLE',
-      oversized ? '图片过大，请缩小后重试。' : status === 504 ? '识别等待超时，原请求可能仍在处理。请稍后手动重试。' : '暂时无法连接识别服务，请稍后再试。');
+      oversized ? '图片过大，请缩小后重试。' : status === 504 ? '识别等待超时，原请求可能仍在处理。请稍后手动重试。'
+        : mode === 'fast' ? '快速识别暂不可用，可手动切换为精细识别。' : '暂时无法连接识别服务，请稍后再试。');
   } finally {
     clearTimeout(timer);
     request.signal.removeEventListener('abort', onAbort);
@@ -174,7 +190,7 @@ export default {
     const path = new URL(request.url).pathname;
     if (path.startsWith('/models/')) return portableModel(request);
     if (path === '/api/health') return json({ service: 'mahjong', version: env.APP_VERSION,
-      configured: env.INFERENCE_ENABLED === 'true' && Boolean(env.MODAL_URL && env.MODAL_PROXY_TOKEN),
+      configured: Boolean(inferenceUrl(env, 'precision')), fastConfigured: Boolean(inferenceUrl(env, 'fast')),
       inferenceProbed: false });
     if (path === '/api/recognize') {
       try { return await recognize(request, env); }

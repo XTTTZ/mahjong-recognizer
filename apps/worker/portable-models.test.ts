@@ -6,6 +6,12 @@ afterEach(() => vi.unstubAllGlobals());
 const request = (path = 'detector.onnx', init?: RequestInit) => new Request(`https://mahjong.example/models/portable-v1/${path}`, init);
 
 describe('opt-in public portable models', () => {
+  it('uses the separate immutable compact release and never caller-selected upstreams', async () => {
+    const fetch = vi.fn(async () => new Response('model')); vi.stubGlobal('fetch', fetch);
+    const result = await portableModel(new Request('https://mahjong.example/models/compact-v10/manifest.json?url=https://private.example'));
+    expect(result.status).toBe(200);
+    expect(String(fetch.mock.calls[0][0])).toBe('https://github.com/XTTTZ/mahjong-recognizer/releases/download/runtime-compact-fp32-20261109/manifest.json');
+  });
   it('serves only exact assets and read-only methods', async () => {
     const fetch = vi.fn(); vi.stubGlobal('fetch', fetch);
     expect((await portableModel(request('private.pt'))).status).toBe(404);

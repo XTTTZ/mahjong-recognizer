@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "preparedDate": "2026-11-06",
+  "assets": [
+    {
+      "localPath": "artifacts/models/pretrained/yolo-cascade/yolov8n.pt",
+      "path": "D:/mahjong/models/yolov8n.pt",
+      "sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "bytes": 6549796,
+      "source": "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8n.pt",
+      "upstreamRelease": "v8.3.0",
+      "architecture": "YOLOv8n COCO detection pretrained; new generic head during training",
+      "license": "AGPL-3.0; existing project free public-source route",
+      "licenseSource": "https://github.com/ultralytics/ultralytics/blob/v8.4.189/LICENSE",
+      "docsSource": "https://docs.ultralytics.com/models/yolov8/",
+      "verification": "HTTPS official release download; full local SHA256 frozen; ZIP CRC checked; no pickle loaded"
+    }
+  ],
+  "trainingStarted": false,
+  "windowsTransferred": false
+}

@@ -30,8 +30,10 @@ class TensorContracts(unittest.TestCase):
         if not path.is_file():self.skipTest('Official offline pretrained asset not present')
         model=build_student(path).cpu().eval()
         self.assertEqual(model.classifier[3].out_features,42)
-        with torch.inference_mode():output=model(torch.zeros(1,3,224,224))
-        self.assertEqual(tuple(output.shape),(1,42));self.assertTrue(torch.isfinite(output).all())
+        for resolution in (192,224):
+            with self.subTest(resolution=resolution),torch.inference_mode():
+                output=model(torch.zeros(1,3,resolution,resolution))
+                self.assertEqual(tuple(output.shape),(1,42));self.assertTrue(torch.isfinite(output).all())
         self.assertLess(sum(p.numel()for p in model.parameters()),5_000_000)
 
     def test_fx_static_graph_can_convert_and_script_without_a_training_step(self):
@@ -59,16 +61,25 @@ class TensorContracts(unittest.TestCase):
         from ml.train.student_common import build_student,ARCHITECTURE
         from ml.inference.manifest import FACE_TOKENS
         classes={str(i):name for i,name in enumerate(sorted(FACE_TOKENS))}
-        config={'resolution':224,'context':.08}
         class Detector:
             def predict(self,image):return [{'classId':'tile','bbox':[10.,20.,30.,40.],'score':.83},{'classId':'tile','bbox':[50.,30.,25.,45.],'score':.79}]
         with tempfile.TemporaryDirectory()as tmp:
-            path=Path(tmp)/'student.pt';torch.save({'architecture':ARCHITECTURE,'model':build_student().state_dict(),'classes':classes,'config':config},path)
-            adapter=RawStudentCascade(Detector(),path,classes,config,device='cpu')
-            result=adapter.predict(Image.new('RGB',(100,100),'white'))
-        self.assertEqual(len(result),2);self.assertEqual(result[0]['bbox'],[10.,20.,30.,40.])
-        for row,confidence in zip(result,(.83,.79)):
-            self.assertIn(row['classId'],classes.values());self.assertAlmostEqual(row['score'],confidence*row['classifierScore'])
+            for resolution in (192,224):
+                with self.subTest(resolution=resolution):
+                    config={'resolution':resolution,'context':.08}
+                    path=Path(tmp)/'student.pt';torch.save({'architecture':ARCHITECTURE,'model':build_student().state_dict(),'classes':classes,'config':config},path)
+                    adapter=RawStudentCascade(Detector(),path,classes,config,device='cpu')
+                    shapes=[]
+                    handle=adapter.classifier.register_forward_pre_hook(lambda _,args:shapes.append(tuple(args[0].shape)))
+                    result=adapter.predict(Image.new('RGB',(100,100),'white'))
+                    handle.remove()
+                    self.assertEqual(shapes,[(2,3,resolution,resolution)])
+                    self.assertEqual(len(result),2);self.assertEqual(result[0]['bbox'],[10.,20.,30.,40.])
+                    for row,confidence in zip(result,(.83,.79)):
+                        self.assertIn(row['classId'],classes.values());self.assertAlmostEqual(row['score'],confidence*row['classifierScore'])
+                    wrong_geometry=dict(config,resolution=224 if resolution==192 else 192)
+                    with self.assertRaisesRegex(ValueError,'signed geometry'):
+                        RawStudentCascade(Detector(),path,classes,wrong_geometry,device='cpu')
 
 
 if __name__=='__main__':unittest.main()

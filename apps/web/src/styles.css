@@ -56,6 +56,11 @@ svg { flex-shrink: 0; }
 .empty-copy > span { color: #88917d; font-size: 11px; letter-spacing: .5px; }
 .inputs { display: none; }
 .trial-note { color: #83917a; font-size: 11px; line-height: 1.6; margin: 0 2px 12px; }
+.recognition-mode { margin: 0 0 12px; }
+.recognition-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid #dbe2d3; border-radius: 12px; background: #eef1e7; }
+.mode-button { min-height: 44px; padding: 7px 10px; border-radius: 8px; color: #62725a; font-size: 13px; font-weight: 600; }
+.mode-button.selected { background: #fffef5; color: var(--forest); box-shadow: 0 1px 4px #234a3c12; }
+.recognition-mode > p { margin: 5px 3px 0; color: #83917a; font-size: 11px; line-height: 1.5; }
 .service-notice { margin: 0 0 14px; }
 .actions { display: grid; grid-template-columns: 1.35fr 1fr; gap: 11px; margin-top: 18px; }
 .primary-button, .secondary-button { min-height: 54px; border-radius: 14px; font-size: 15px; font-weight: 620; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 13px 15px; white-space: nowrap; }

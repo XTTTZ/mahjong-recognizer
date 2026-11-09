@@ -6,17 +6,17 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 function argumentsFrom(argv) {
-  const options={baseUrl:'http://127.0.0.1:4174',provider:'wasm',browser:'chromium',headed:false,repeats:3};
-  const names={'--base-url':'baseUrl','--image':'image','--provider':'provider','--out':'out','--browser':'browser','--repeats':'repeats'};
+  const options={baseUrl:'http://127.0.0.1:4174',provider:'wasm',profile:'compact-v10',browser:'chromium',headed:false,repeats:3};
+  const names={'--base-url':'baseUrl','--image':'image','--provider':'provider','--profile':'profile','--out':'out','--browser':'browser','--repeats':'repeats'};
   for(let i=0;i<argv.length;i++){
     if(argv[i]==='--headed'){options.headed=true;continue;}
-    if(argv[i]==='--help'){console.log('node infra/portable/probe_browser.mjs --image PHOTO --out RESULT.json [--base-url http://127.0.0.1:4174] [--provider wasm|webgpu] [--browser chromium|chrome] [--headed] [--repeats 1|3]');process.exit(0);}
+    if(argv[i]==='--help'){console.log('node infra/portable/probe_browser.mjs --image PHOTO --out RESULT.json [--base-url http://127.0.0.1:4174] [--provider wasm|webgpu] [--profile compact-v10|portable-v1] [--browser chromium|chrome] [--headed] [--repeats 1|3]');process.exit(0);}
     const key=names[argv[i]];if(!key||!argv[i+1]||argv[i+1].startsWith('--'))throw Error(`Unknown or missing argument: ${argv[i]}`);
     options[key]=argv[++i];
   }
   options.repeats=Number(options.repeats);
   if(!options.image||!options.out)throw Error('--image and --out are required; no default private photo is used');
-  if(!['wasm','webgpu'].includes(options.provider)||!['chromium','chrome'].includes(options.browser)||![1,3].includes(options.repeats))throw Error('Invalid provider/browser/repeats');
+  if(!['compact-v10','portable-v1'].includes(options.profile)||!['wasm','webgpu'].includes(options.provider)||!['chromium','chrome'].includes(options.browser)||![1,3].includes(options.repeats))throw Error('Invalid provider/browser/repeats');
   const base=new URL(options.baseUrl);
   if(base.username||base.password||base.search||base.hash||!['/','/benchmark','/benchmark/'].includes(base.pathname))throw Error('--base-url must be an origin or its /benchmark route without credentials/query');
   if(base.protocol!=='https:'&&!(base.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(base.hostname)))throw Error('Use HTTPS or a loopback HTTP origin');
@@ -38,7 +38,8 @@ await page.route('**/*',async route=>{
   const allowed=url.origin===opt.origin&&request.method()==='GET'&&(
     ['/benchmark','/benchmark/','/icon.svg','/favicon.ico'].includes(url.pathname)||
     url.pathname.startsWith('/assets/')||url.pathname.startsWith('/ort/')||
-    ['/models/portable-v1/manifest.json','/models/portable-v1/detector.onnx','/models/portable-v1/classifier.onnx'].includes(url.pathname));
+    /^\/tiles\/(?:[1-9][mps]|[1-7]z|[1-8]h|back)\.svg$/.test(url.pathname)||
+    ['manifest.json','detector.onnx','classifier.onnx'].map(name=>`/models/${opt.profile}/${name}`).includes(url.pathname));
   if(!allowed){blockedRequests.push({method:request.method(),url:request.url()});await route.abort('blockedbyclient');return;}
   requests.push({method:request.method(),url:request.url()});
   if(!optedIn&&(/\/models\/|\/ort\/|\/assets\/local.worker-/.test(url.pathname)))inferenceRequestsBeforeOptIn++;
@@ -64,10 +65,11 @@ async function waitFor(condition,timeout,label){
   }
   throw Error(`${label} timed out`);
 }
-const receipt={schemaVersion:1,url:opt.url,requestedProvider:opt.provider,requestedBrowser:opt.browser,headed:opt.headed,viewport:{width:1280,height:900},mobileEmulation:false,physicalPhoneVerified:false,userSuppliedLocalPhoto:true,photoUploaded:false,repeats:opt.repeats,requests,responses,blockedRequests,errors};
+const receipt={schemaVersion:1,url:opt.url,requestedProvider:opt.provider,requestedProfile:opt.profile,requestedBrowser:opt.browser,headed:opt.headed,viewport:{width:1280,height:900},mobileEmulation:false,physicalPhoneVerified:false,userSuppliedLocalPhoto:true,photoUploaded:false,repeats:opt.repeats,requests,responses,blockedRequests,errors};
 try{
   await page.goto(opt.url,{waitUntil:'networkidle',timeout:60000});
   if(inferenceRequestsBeforeOptIn)throw Error('Inference resources were requested before explicit opt-in');
+  await page.getByLabel('本地模型').selectOption(opt.profile);
   await page.getByLabel('运行方式').selectOption(opt.provider);
   optedIn=true;await page.getByRole('button',{name:'下载并加载模型'}).click();
   await waitFor(async()=>((await page.getByRole('status').innerText()).includes('模型已就绪')),480000,'Model load');
@@ -79,12 +81,12 @@ try{
   const download=await pending,downloadPath=await download.path();
   if(!downloadPath)throw Error('Browser download did not produce a local result');
   const bytes=await fs.readFile(downloadPath),report=JSON.parse(bytes.toString('utf8'));
-  if(report.photoUploaded!==false||report.requestedProvider!==opt.provider||report.runs.length!==opt.repeats)throw Error('Downloaded report does not match the requested local-only run');
+  if(report.photoUploaded!==false||report.requestedProvider!==opt.provider||report.profileId!==opt.profile||report.runs.length!==opt.repeats)throw Error('Downloaded report does not match the requested local-only run');
   await fs.writeFile(out,bytes,{flag:'wx'});
   await page.getByRole('button',{name:'释放模型 / 切换方式'}).click();
   await page.waitForTimeout(100);
   Object.assign(receipt,{state:'passed',inferenceRequestsBeforeOptIn,modelReleaseClosedWorker:workerClosed>0,reportSha256:createHash('sha256').update(bytes).digest('hex'),browserVersion:browser.version()});
   if(!workerClosed||blockedRequests.length||errors.length)throw Error('Resource release or browser/network guard failed');
-  console.log(JSON.stringify({state:'passed',out:opt.out,provider:report.requestedProvider,device:report.device,totalMs:report.runs.map(run=>run.totalMs),retainedTiles:report.runs.map(run=>run.tiles.length),allTilesMeetAcceptThreshold:report.runs.map(run=>run.allTilesMeetAcceptThreshold),phoneHardwareVerified:false}));
+  console.log(JSON.stringify({state:'passed',out:opt.out,provider:report.requestedProvider,profile:report.profileId,modelBytes:report.modelBytes,device:report.device,totalMs:report.runs.map(run=>run.totalMs),retainedTiles:report.runs.map(run=>run.tiles.length),allTilesMeetAcceptThreshold:report.runs.map(run=>run.allTilesMeetAcceptThreshold),phoneHardwareVerified:false}));
 }catch(error){Object.assign(receipt,{state:'failed',error:String(error)});process.exitCode=1;console.error(String(error));}
 finally{await Promise.allSettled(responseTasks);await browser.close();await fs.writeFile(receiptFile,JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});}

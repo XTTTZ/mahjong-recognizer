@@ -10,13 +10,22 @@ from ml.eval.recover_terminal import checked_run, checked_candidates
 from ml.eval.evaluate_yolo_candidates import ranking
 from ml.eval.yolo_evaluate import evaluate
 from ml.train.provenance import atomic_json, dataset_contract, sha256
-from ml.train.student_common import ARCHITECTURE
+from ml.train.student_common import ARCHITECTURE, validate_geometry
+
+
+def classifier_geometry(run):
+    config = validate_geometry(run['config'])
+    if run['resolution'] != config['resolution']:
+        raise ValueError('Student run resolution differs from its signed config')
+    return {'classifierResolution':config['resolution'], 'cropContext':config['context']}
 
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('dataset','run','checkpoint','detector-run','detector-checkpoint','out'): p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--terminal-receipt',type=Path); p.add_argument('--threads',type=int,default=2)
+    p.add_argument('--locked-operating-point',action='store_true',
+        help='Compare best/last only at the unchanged production fused>.35 / acceptance.7 point')
     a=p.parse_args()
     if not 1<=a.threads<=4: raise ValueError('Use1..4 CPU threads')
     if a.out.exists(): raise FileExistsError('Use an immutable new validation directory')
@@ -27,6 +36,7 @@ def main():
     # The requested frozen detector is fixed; last/best substitution is forbidden.
     detectors=[pair for pair in detectors if pair[0]==a.detector_checkpoint]
     if run['architecture']!=ARCHITECTURE or not detector_run.get('generic') or len(detectors)!=1: raise ValueError('Expected a signed student and the fixed generic detector')
+    geometry = classifier_geometry(run)
     import torch
     torch.set_num_threads(a.threads);torch.set_num_interop_threads(1)
     if torch.cuda.is_available(): raise RuntimeError('CPU evaluation cannot see CUDA')
@@ -46,12 +56,13 @@ def main():
                 'resumeSignatureSha256':hashlib.sha256(json.dumps(detector_run['resumeSignature'],sort_keys=True).encode()).hexdigest(),
                 'dataContract':contract,'trainAnnotationSha256':contract['splits']['train']['annotationSha256'],
                 'validationAnnotationSha256':contract['splits']['valid']['annotationSha256'], 'resolution':detector_run['resolution'],
-                'classifierResolution':224,'cropContext':run['config']['context'],'evaluationDevice':'cpu','evaluationThreads':a.threads,
+                **geometry,'evaluationDevice':'cpu','evaluationThreads':a.threads,
                 'scoreFusion':'detector_probability_times_classifier_probability','localizationScope':'predicted_detector_boxes',
                 'predictionFloor':.05,'detectorThreshold':.05,'nmsIou':.6,'sourceTrainingStatus':detector_status,'sourceClassifierTrainingStatus':status,
                 'gpuDeploymentRevalidationRequired':True,'evaluationCodeSha256':sha256(__file__)}
             destination=a.out/f'candidate-{index:02d}'
-            report=evaluate(predictor,a.dataset,destination,metadata)
+            options = {'thresholds':(.35,), 'accept_threshold':.7, 'select_threshold':False} if a.locked_operating_point else {}
+            report=evaluate(predictor,a.dataset,destination,metadata,**options)
             if sha256(checkpoint)!=digest or sha256(a.detector_checkpoint)!=detectors[0][1]: raise ValueError('Weight changed during evaluation')
             if report['inferenceFailedImages']:raise RuntimeError('Candidate inference failures retained; refusing successful complete selection')
             row.update(state='succeeded',ranking=ranking(report),report=str(destination/'report.json'),inferenceFailedImages=report['inferenceFailedImages'])

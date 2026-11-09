@@ -13,7 +13,7 @@ from ml.data.prepare_crops import verify_prepared
 from ml.data.prepare_crop_cache_v6 import verify_cache
 from ml.inference.cascade_model import build_classifier, image_tensor
 from ml.train.provenance import atomic_json, dataset_contract, sha256
-from ml.train.student_common import ARCHITECTURE, WEIGHTS_FILENAME, WEIGHTS_SHA256, build_student, distillation_loss, validate_recipe
+from ml.train.student_common import ARCHITECTURE, RESOLUTIONS, WEIGHTS_FILENAME, WEIGHTS_SHA256, build_student, distillation_loss, validate_recipe
 from ml.train.v6_common import parent_contract, completed_epoch_budget
 from ml.train.v6_augment import cached_crop_face
 from ml.train.yolo_train import admit_output, checkpoint_receipt, shared_signature
@@ -57,7 +57,7 @@ def main():
     p.add_argument('--teacher-terminal-receipt', type=Path)
     p.add_argument('--epochs', type=int, default=20); p.add_argument('--batch', type=int, default=16)
     p.add_argument('--gradient-accumulation', type=int, default=2); p.add_argument('--workers', type=int, default=2)
-    p.add_argument('--resolution', type=int, choices=(224,), default=224); p.add_argument('--context', type=float, default=.08)
+    p.add_argument('--resolution', type=int, choices=RESOLUTIONS, default=224); p.add_argument('--context', type=float, default=.08)
     p.add_argument('--lr', type=float, default=.0003); p.add_argument('--seed', type=int, default=2026)
     p.add_argument('--distillation-alpha', type=float, default=0); p.add_argument('--temperature', type=float, default=2.)
     p.add_argument('--teacher-min-confidence', type=float, default=.7)
@@ -98,7 +98,7 @@ def main():
     if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported(): raise RuntimeError('CUDA BF16 required')
     random.seed(args.seed); torch.manual_seed(args.seed); torch.cuda.manual_seed_all(args.seed)
     admit_output(args.output)
-    run = {'architecture':ARCHITECTURE,'classes':contract['classes'],'ontology':'faces42','resolution':224,'config':config,
+    run = {'architecture':ARCHITECTURE,'classes':contract['classes'],'ontology':'faces42','resolution':args.resolution,'config':config,
         'resumeSignature':signature,'startedAt':datetime.now(timezone.utc).isoformat(),'testOpened':False,
         'annotationSha256':contract['splits']['train']['annotationSha256'], 'validationAnnotationSha256':contract['splits']['valid']['annotationSha256'],
         'validationScope':'oracle_truth_crops_diagnostic_only','teacher':teacher_evidence,'plannedEpochs':args.epochs}

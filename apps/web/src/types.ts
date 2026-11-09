@@ -14,7 +14,11 @@ export interface RecognitionResult {
   tiles: TilePrediction[];
   quality: { status: 'ok' | 'needs_retake'; reasons: string[] };
   timings: { totalMs: number };
+  recognitionMode?: RecognitionMode;
 }
+
+export type RecognitionMode = 'fast' | 'precision';
+export interface ServiceAvailability { configured: boolean; fastConfigured: boolean }
 
 export interface PreparedPhoto {
   file: File;

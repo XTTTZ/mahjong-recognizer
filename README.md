@@ -49,3 +49,12 @@ npm run worker:dev
 ## 许可
 
 完整应用源码及本次选中权重以 **AGPL-3.0-only** 发布。通过网络提供修改版本服务时，遵循许可证的对应源码提供要求。上游及数据出处见 [NOTICE](NOTICE) 和 [LICENSE](LICENSE)。其他第三方依赖保留其各自许可。本仓库是独立麻将工程的干净快照，不包含其他应用、私有仓库历史、凭据、原始照片或私有实验日志。
+
+
+## Compact CPU and browser profile
+
+The `runtime-compact-fp32-20261109` release supplies a separate YOLOv8n800 + MobileNetV3-Large224 distilled FP32 ONNX cascade (about29.85 MB). The browser `/benchmark` page offers the compact profile and the original119 MB control, with opt-in downloads and no photo upload. The server can offer quick CPU recognition alongside the original GPU precision profile; each keeps the same tile-editing/scoring flow.
+
+The compact combination scored74/82 automatic exact multi-tile photos and44/45 photos containing13/14 tiles in the frozen native validation on localCPU. These results are validation reuse, not an independent sealed test or a real-phone accuracy claim. Device latency, first download/load and service cold start are reported separately. Small aggregate accuracy changes are explicitly permitted for the compact path; every tile remains editable.
+
+See `docs/models/COMPACT_V10.md` for export, target CPU comparison and deployment commands. No training starts automatically. The original model's one-time sealed-test31/47 result belongs only to that original model.
