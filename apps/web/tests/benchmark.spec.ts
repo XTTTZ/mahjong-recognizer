@@ -21,7 +21,7 @@ for (const pathname of ['/', '/benchmark']) {
     await page.goto(pathname);
     if (pathname === '/') {
       await expect(page.getByRole('button', { name: '拍一张', exact: true })).toBeVisible();
-      await expect(page.getByRole('link', { name: '设备性能测试', exact: true })).toHaveAttribute('href', '/benchmark');
+      await expect(page.getByRole('link', { name: '本机测试', exact: true })).toHaveAttribute('href', '/benchmark');
     } else {
       await expect(page.getByRole('button', { name: '下载并加载模型', exact: true })).toBeEnabled();
       await expect(page.getByRole('button', { name: '开始本地测试', exact: true })).toBeDisabled();
