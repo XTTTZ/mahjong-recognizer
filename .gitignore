@@ -27,3 +27,5 @@ artifacts/web/test-output/
 
 artifacts/public-release/
 artifacts/release/
+
+artifacts/portable-v10-*/

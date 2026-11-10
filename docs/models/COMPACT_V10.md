@@ -29,3 +29,16 @@ The app offers quick/precision choices after configuration discovery. Local infe
 The compact public release contains sanitized FP32 model graphs, manifest, license and attribution. Corresponding source includes the training/evaluation/export/runtime code. No credentials, raw photographs, private transport maps or experiment logs are published. Public retrieval uses only fixed approved GitHub release paths; no caller URL, cookies or authorization are forwarded.
 
 To test a physical phone, open the deployed `/benchmark`, choose compact and WASM or WebGPU, explicitly load the models, select a hand photo and save the JSON. Record actual phone/browser, first download/load, first inference, cached later runs and warm-device behavior. Mobile viewport emulation does not count as hardware evidence. CPU performance and cached browser performance do not promise a universal total response time over mobile networks.
+
+
+## Completed deployment validation (2026-11-10)
+
+The live website defaults to quick CPU recognition and offers the original precision mode. Its main route downloads no browser inference models. The local benchmark defaults to the29.85 MB compact profile; the119 MB model is only an explicitly selected comparison. ORT adds25.55 MB of uncompressed runtime assets; first-use download/loading and later inference are distinct.
+
+Actual protected Modal endpoint:1physicalcore/2048MiB/batch4/FP32, all150 native validation photos sequentially, zero failures and retries. It scored137/150 overall,74/82 multi-tile,44/45 normal13/14tile photos, with1wrongacceptoverall and0in the two hand cohorts. The historical baseline scored135/150,72/82,43/45 and3overallwrongaccepts. Some individual photos regress; aggregate accuracy is higher, not universal dominance.
+
+For the45 normal hands, measured warm inference+normalization p50/p95 was344/371ms; service total433/1538ms; direct persistent HTTP wall780/1902ms. Initial protected health request was8.23seconds and a restored cold cycle5.76seconds, separately from these warm statistics. CPU memorysnapshot restoration was verified in actual container logs. The actual main website browser upload through Cloudflare correctly recognized14/14fixturetiles in3.29seconds, including image preparation/network; its server inference was407ms.
+
+Live desktop Chrome local benchmark, finalKDweights on one14tilephoto: WASM507/472/468ms, WebGPU337/50/47ms. Allsix outputs were exact on that photo, modelhashes verified, no photo/API upload or pre-optin inference downloads, and cancel/release closed the real worker. This is desktop AppleM4Pro evidence, not phonehardware. Full150browseraccuracy and iPhone/Androidhardware measurements remain future checks.
+
+`infra/portable/http_evaluate.py` provides a reproducible20minute-max actual HTTP evaluator with45secondrequesttimeout, one transportretry maximum, request/modelidentity checks, and immutableper-imagecheckpoints. It defaults to offline preflight; `--run-http` explicitly performsvalidation. The optional `--baseline` accepts an independently generated frozencontrol; no private historicalreport is required. Keep its tokenfile ignored and never put credential values in command arguments.

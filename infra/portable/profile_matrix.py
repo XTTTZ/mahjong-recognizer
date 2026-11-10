@@ -11,14 +11,14 @@ from infra.portable.quality_gate import paired_quality_gate,percentile
 
 
 def measure(profiles,payload,annotation,threads=2,batch=4):
+    if len(profiles)<2 or len(profiles)>6 or profiles[0]['name']!='baseline':raise ValueError('Baseline plus1..5 profiles required')
+    if threads not in (1,2) or batch not in (1,4,8):raise ValueError('Bound CPU and batch')
     from PIL import Image
     import onnxruntime as ort
     from ml.inference.onnx_runtime import OnnxCascadePredictor
     from ml.inference.candidate_onnx_runtime import CandidateOnnxPredictor
     from ml.inference.postprocess import normalize_tiles
     from ml.eval.metrics import Tile,score_image,summarize
-    if len(profiles)<2 or len(profiles)>6 or profiles[0]['name']!='baseline':raise ValueError('Baseline plus1..5 profiles required')
-    if threads not in (1,2) or batch not in (1,4,8):raise ValueError('Bound CPU and batch')
     models={};loads={};warmup={}
     for row in profiles:
         start=time.perf_counter();constructor=OnnxCascadePredictor if row['name']=='baseline' else CandidateOnnxPredictor

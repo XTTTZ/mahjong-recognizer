@@ -20,5 +20,6 @@ class MatrixEvidence(unittest.TestCase):
         self.assertEqual(report['summaries']['compact']['thirteenFourteen45']['timedImages'],45)
         self.assertEqual(report['strictHistoricalGate']['compact']['newWrongAcceptIds'],[83])
     def test_baseline_is_required(self):
-        with self.assertRaises(ValueError):measure([{'name':'other','directory':'x'}],[],{})
+        with patch.dict(sys.modules,{'onnxruntime':None}),self.assertRaises(ValueError):
+            measure([{'name':'other','directory':'x'}],[],{})
 if __name__=='__main__':unittest.main()
