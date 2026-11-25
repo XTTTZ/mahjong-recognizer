@@ -2,7 +2,7 @@
 
 [手机网站](https://mahjong.avalonxty.site) · [模型与校验值](https://github.com/XTTTZ/mahjong-recognizer/releases/tag/model-v4-20261027)
 
-独立的手机拍照识别应用：React 前端 → Cloudflare Worker 上传网关 → Modal L4 GPU。照片只在请求期间处理，不持久保存，也不会自动回流训练集。不需要数据库。
+手机拍照后默认由 Cloudflare 上传网关转交 Modal CPU 快速识别，也可选择 GPU 精细识别或浏览器本机识别。照片只在请求期间处理，不持久保存，也不会自动回流训练集。不需要数据库。
 
 当前模型先用 YOLO26s 检测牌面，再用 EfficientNet V2 S 分类。共42种正面牌；支持拍照、选图、旋转、区域裁剪、识别框展示、逐牌更正、补牌、删除和撤销。识别后按广东大牌136张规则判断胡牌与倍数，特殊情况由用户确认，编辑后在本机重算。差一张时展示可听牌、牌型和基础倍数；基础未满3倍需另满足特殊条件。碰杠只可选择实体数量足够且兼容的牌，七对系列不叠门清或副露。**实验版，结果必须逐张核对。**
 
@@ -53,7 +53,7 @@ npm run worker:dev
 
 ## Compact CPU and browser profile
 
-The `runtime-compact-fp32-20261109` release supplies a separate YOLOv8n800 + MobileNetV3-Large224 distilled FP32 ONNX cascade (about29.85 MB). The browser `/benchmark` page offers the compact profile and the original119 MB control, with opt-in downloads and no photo upload. The server can offer quick CPU recognition alongside the original GPU precision profile; each keeps the same tile-editing/scoring flow.
+The `runtime-compact-fp32-20261109` release supplies a separate YOLOv8n800 + MobileNetV3-Large224 distilled FP32 ONNX cascade (about29.85 MB). The main page defaults to cloud CPU recognition with no model download. The optional local mode prepares verified weights in the background while cloud recognition remains available. With permission, returning visits reload the model and reuse the verified weights from browser storage. The first local setup includes the 29.85 MB weights and 11.93 MB WASM runtime before HTTP compression. The browser `/benchmark` page offers the compact profile and the original119 MB control, with opt-in downloads and no photo upload. The server can offer quick CPU recognition alongside the original GPU precision profile; each keeps the same tile-editing/scoring flow.
 
 The compact combination scored74/82 automatic exact multi-tile photos and44/45 photos containing13/14 tiles in the frozen native validation on localCPU. These results are validation reuse, not an independent sealed test or a real-phone accuracy claim. Device latency, first download/load and service cold start are reported separately. Small aggregate accuracy changes are explicitly permitted for the compact path; every tile remains editable.
 

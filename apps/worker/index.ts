@@ -166,8 +166,11 @@ export async function recognize(request: Request, env: Env): Promise<Response> {
     if (!result || typeof result !== 'object' || !('tiles' in result) || !Array.isArray(result.tiles)) {
       return error(requestId, 502, 'INVALID_RESULT', '识别结果异常，请重新拍摄。');
     }
-    console.log(JSON.stringify({ event: 'recognize', requestId, mode, bytes, elapsedMs: Date.now() - started, status: 200 }));
-    return json({ ...result, requestId, recognitionMode: mode });
+    const gatewayMs = Date.now() - started;
+    console.log(JSON.stringify({ event: 'recognize', requestId, mode, bytes, elapsedMs: gatewayMs, status: 200 }));
+    const delivered = json({ ...result, requestId, recognitionMode: mode, gatewayMs });
+    delivered.headers.set('Server-Timing', `gateway;dur=${gatewayMs}`);
+    return delivered;
   } catch (cause) {
     const status = oversized ? 413 : abort.signal.aborted ? 504 : 503;
     // Fetch runtime messages describe transport errors. Never log response
@@ -210,8 +213,12 @@ export default {
     response.headers.set('Referrer-Policy', 'no-referrer');
     response.headers.set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
     response.headers.set('Content-Security-Policy', "default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
+    if (path === '/') {
+      response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+      response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+    }
     if (path === '/benchmark' || path === '/benchmark/' || /^\/assets\/local\.worker-[\w-]+\.js$/.test(path)) {
-      // Only the explicit local benchmark needs WebAssembly compilation. No
+      // The benchmark and the dedicated inference worker compile WebAssembly. No
       // inline/eval JavaScript, CDN scripts or external model hosts are allowed.
       response.headers.set('Content-Security-Policy', "default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
       response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');

@@ -60,8 +60,9 @@ if modal.is_local():
               'MAHJONG_CPU_EXPECTED_MODEL':json.dumps(expected,sort_keys=True)}))
 
 
+# Keep the warmed model available while the user takes and crops a photo.
 @app.cls(image=image,cpu=(SETTINGS['cores'],SETTINGS['cores']),memory=SETTINGS['memory'],
-         min_containers=0,max_containers=1,scaledown_window=10,timeout=90,
+         min_containers=0,max_containers=1,scaledown_window=120,timeout=90,
          enable_memory_snapshot=SETTINGS['snapshot'])
 class CpuRecognizer:
     @modal.enter(snap=SETTINGS['snapshot'])

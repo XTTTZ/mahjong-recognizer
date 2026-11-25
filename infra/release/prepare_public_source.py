@@ -33,6 +33,7 @@ def main():
                               'docs/models/release-20261027.json',
                               'docs/models/student-assets-v7.json',
                               'docs/models/nano-assets-v9.json',
+                              'docs/models/compact-v11-baseline.json',
                               'docs/models/v9-runtime-matrix.json',
                               'docs/models/weight-privacy-audit-20261027.json',
                               'docs/deploy/WEB.md'}

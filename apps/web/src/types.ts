@@ -15,13 +15,17 @@ export interface RecognitionResult {
   quality: { status: 'ok' | 'needs_retake'; reasons: string[] };
   timings: { totalMs: number };
   recognitionMode?: RecognitionMode;
+  gatewayMs?: number;
+  clientWaitMs?: number;
 }
 
-export type RecognitionMode = 'fast' | 'precision';
+export type CloudRecognitionMode = 'fast' | 'precision';
+export type RecognitionMode = CloudRecognitionMode | 'local';
 export interface ServiceAvailability { configured: boolean; fastConfigured: boolean }
 
 export interface PreparedPhoto {
   file: File;
+  fastFile?: File;
   url: string;
   width: number;
   height: number;

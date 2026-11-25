@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.route('**/api/warmup', route => route.fulfill({ json: { ready: true } }));
+  await page.route('**/api/warmup*', route => route.fulfill({ json: { ready: true } }));
 });
 import fs from 'node:fs/promises';
 

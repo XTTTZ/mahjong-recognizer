@@ -6,7 +6,7 @@ const ordinary = ['1m', '1m', '1m', '2m', '3m', '4m', '4p', '5p', '6p', '7s', '8
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/health', route => route.fulfill({ json: { configured: true, inferenceProbed: false } }));
-  await page.route('**/api/warmup', route => route.fulfill({ json: { accepted: true } }));
+  await page.route('**/api/warmup*', route => route.fulfill({ json: { accepted: true } }));
 });
 
 async function fixturePhoto(page: Page) {

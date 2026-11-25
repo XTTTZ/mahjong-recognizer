@@ -5,6 +5,7 @@ export const MAX_UPLOAD_BYTES = 12 * 1024 * 1024;
 const MAX_SOURCE_BYTES = 40 * 1024 * 1024;
 const MAX_PIXELS = 40_000_000;
 const LONG_EDGE = 2560;
+const FAST_LONG_EDGE = 1600;
 
 interface DecodedImage {
   source: CanvasImageSource;
@@ -32,10 +33,8 @@ async function decode(file: Blob): Promise<DecodedImage> {
   }
 }
 
-async function encode(source: CanvasImageSource, width: number, height: number, turns = 0): Promise<PreparedPhoto> {
-  if (width * height > MAX_PIXELS) throw new Error('照片分辨率太高，请先裁剪到需要识别的手牌。');
-  if (Math.min(width, height) < 32) throw new Error('照片太小，请选择能看清完整牌面的照片。');
-  const scale = Math.min(1, LONG_EDGE / Math.max(width, height));
+async function jpeg(source: CanvasImageSource, width: number, height: number, turns: number, edge: number, quality: number) {
+  const scale = Math.min(1, edge / Math.max(width, height));
   const w = Math.max(1, Math.round(width * scale));
   const h = Math.max(1, Math.round(height * scale));
   const canvas = document.createElement('canvas');
@@ -49,11 +48,24 @@ async function encode(source: CanvasImageSource, width: number, height: number, 
   context.rotate(turns * Math.PI / 2);
   context.drawImage(source, -w / 2, -h / 2, w, h);
   const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(
-    value => value ? resolve(value) : reject(new Error('照片处理失败，请重新选择。')), 'image/jpeg', 0.94,
+    value => value ? resolve(value) : reject(new Error('照片处理失败，请重新选择。')), 'image/jpeg', quality,
   ));
   if (blob.size > MAX_UPLOAD_BYTES) throw new Error('照片仍然太大，请裁剪后重新选择。');
   const file = new File([blob], 'mahjong-photo.jpg', { type: 'image/jpeg' });
-  return { file, url: URL.createObjectURL(file), width: canvas.width, height: canvas.height };
+  return { file, width: canvas.width, height: canvas.height };
+}
+
+async function encode(source: CanvasImageSource, width: number, height: number, turns = 0): Promise<PreparedPhoto> {
+  if (width * height > MAX_PIXELS) throw new Error('照片分辨率太高，请先裁剪到需要识别的手牌。');
+  if (Math.min(width, height) < 32) throw new Error('照片太小，请选择能看清完整牌面的照片。');
+  // Encode both from the decoded pixels so compression artifacts never compound.
+  const [preview, fast] = await Promise.all([
+    jpeg(source, width, height, turns, LONG_EDGE, 0.94),
+    Math.max(width, height) > FAST_LONG_EDGE
+      ? jpeg(source, width, height, turns, FAST_LONG_EDGE, 0.83).catch(() => undefined)
+      : undefined,
+  ]);
+  return { ...preview, url: URL.createObjectURL(preview.file), fastFile: fast && fast.file.size < preview.file.size ? fast.file : undefined };
 }
 
 export async function preparePhoto(file: File): Promise<PreparedPhoto> {

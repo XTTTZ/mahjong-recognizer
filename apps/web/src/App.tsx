@@ -6,6 +6,7 @@ import { canonicalCropEdges, isFullCrop, rotateCropClockwise, type CropEdges } f
 import { CropDialog } from './CropDialog';
 import { TileFace, WelcomeTiles } from './TileFace';
 import { ScoringPanel } from './ScoringPanel';
+import { prefersLocal, rememberLocal, useLocalModel } from './useLocalModel';
 import { warmupWhenVisible } from './warmup';
 import type { PreparedPhoto, RecognitionMode, RecognitionResult, ServiceAvailability, TileCorrection, TilePrediction } from './types';
 
@@ -25,6 +26,8 @@ interface ManualTile { id: string; classId: string; label: string; source: 'manu
 type EditableTile = TilePrediction | ManualTile;
 const isManualTile = (tile: EditableTile): tile is ManualTile => 'source' in tile && tile.source === 'manual';
 
+const modeLabels = { fast: '快速识别', precision: '精细识别', local: '本机识别' };
+
 function App() {
   const [photo, setPhoto] = useState<PreparedPhoto | null>(null);
   const [originalPhoto, setOriginalPhoto] = useState<PreparedPhoto | null>(null);
@@ -36,7 +39,10 @@ function App() {
   const [slow, setSlow] = useState(false);
   const [offline, setOffline] = useState(!navigator.onLine);
   const [availability, setAvailability] = useState<ServiceAvailability | null>(null);
-  const [mode, setMode] = useState<RecognitionMode>('fast');
+  const [mode, setMode] = useState<RecognitionMode>(() => prefersLocal() ? 'local' : 'fast');
+  const localModel = useLocalModel();
+  const [localStatus, setLocalStatus] = useState('');
+  const isLocal = mode === 'local';
   const [infoOpen, setInfoOpen] = useState(false);
   const [selectedTile, setSelectedTile] = useState<string | null>(null);
   const [corrections, setCorrections] = useState<Record<string, TileCorrection>>({});
@@ -58,20 +64,20 @@ function App() {
   const correctionDialog = useRef<HTMLDialogElement>(null);
   const resultSection = useRef<HTMLElement>(null);
   const busy = state !== 'idle';
-  const configured = availability === null ? null : mode === 'fast' ? availability.fastConfigured : availability.configured;
+  const configured = isLocal ? true : availability === null ? null : mode === 'fast' ? availability.fastConfigured : availability.configured;
 
   useEffect(() => {
-    if (!availability || busy || result) return;
+    if (isLocal || !availability || busy || result) return;
     setMode(previous => {
       if (previous === 'fast' && !availability.fastConfigured) return 'precision';
       if (previous === 'precision' && !availability.configured && availability.fastConfigured) return 'fast';
       return !modeChosen.current && availability.fastConfigured ? 'fast' : previous;
     });
-  }, [availability, busy, result]);
+  }, [isLocal, availability, busy, result]);
   useEffect(() => {
-    // Discover configuration before any page-open model load. The fast default
-    // must never start the other service just because its health check is slow.
-    if (configured === true && !busy) return warmupWhenVisible(mode);
+    // Start only the selected cloud service. The Worker checks its configuration
+    // server-side, so the default fast path need not wait for the health round trip.
+    if (mode !== 'local' && configured !== false && !busy) return warmupWhenVisible(mode);
   }, [configured, mode, busy]);
   useEffect(() => {
     if (result) resultSection.current?.focus({ preventScroll: true });
@@ -84,6 +90,7 @@ function App() {
   };
 
   useEffect(() => {
+    if (isLocal) return;
     const healthController = new AbortController();
     const refreshHealth = () => {
       void serviceAvailability(healthController.signal).then(value => {
@@ -91,6 +98,7 @@ function App() {
       });
     };
     const update = () => { setOffline(!navigator.onLine); if (navigator.onLine) refreshHealth(); };
+    setOffline(!navigator.onLine);
     refreshHealth();
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
@@ -98,6 +106,11 @@ function App() {
       window.removeEventListener('online', update);
       window.removeEventListener('offline', update);
       healthController.abort();
+    };
+  }, [isLocal]);
+
+  useEffect(() => {
+    return () => {
       generationRef.current += 1;
       requestRef.current?.abort();
       for (const url of new Set([photoRef.current?.url, originalPhotoRef.current?.url])) if (url) URL.revokeObjectURL(url);
@@ -138,6 +151,7 @@ function App() {
 
   const invalidate = () => {
     generationRef.current += 1;
+    if (isLocal && requestRef.current) localModel.stop();
     requestRef.current?.abort();
     requestRef.current = null;
     setSlow(false);
@@ -147,6 +161,7 @@ function App() {
   const chooseMode = (next: RecognitionMode) => {
     if (busy || next === mode) return;
     modeChosen.current = true;
+    rememberLocal(next === 'local');
     invalidate();
     replacePhotoPair(photoRef.current, originalPhotoRef.current);
     setMode(next);
@@ -224,7 +239,8 @@ function App() {
   };
 
   const startRecognition = async () => {
-    if (!photo || busy) return;
+    if (!photo || busy || requestRef.current || (isLocal && localModel.phase !== 'ready')) return;
+    const startTime = performance.now();
     const generation = invalidate();
     const controller = new AbortController();
     requestRef.current = controller;
@@ -232,7 +248,8 @@ function App() {
     const slowTimer = window.setTimeout(() => {
       if (generation === generationRef.current) setSlow(true);
     }, 8_000);
-    const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, 95_000);
+    const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, isLocal ? 180_000 : 95_000);
+    if (isLocal) setLocalStatus('正在本机识别…');
     setState('recognizing');
     setResult(null);
     setCorrections({});
@@ -242,13 +259,25 @@ function App() {
     setLastAdded(null);
     setError(null);
     try {
-      const response = await recognize(photo.file, controller.signal, mode);
+      let response: RecognitionResult;
+      if (mode === 'local') {
+        if (!localModel.recognizer.current) throw new Error('请先准备本机模型');
+        response = await localModel.recognizer.current.recognize(photo.file, controller.signal, message => {
+          if (generation === generationRef.current) setLocalStatus(message);
+        });
+      } else {
+        const upload = mode === 'fast' ? photo.fastFile ?? photo.file : photo.file;
+        response = await recognize(upload, controller.signal, mode);
+      }
       if (generation !== generationRef.current) return;
-      setResult({ ...response, recognitionMode: mode });
+      setResult({ ...response, recognitionMode: mode, clientWaitMs: performance.now() - startTime });
     } catch (cause) {
       if (generation !== generationRef.current) return;
-      if (timedOut) setError('等待时间较长，已停止等待。原请求可能仍在处理，请稍后再试。');
+      if (isLocal) localModel.stop();
+      if (timedOut && isLocal) setError('本机识别超时，已释放模型。可重试或手动切换云端识别。');
+      else if (timedOut) setError('等待时间较长，已停止等待。原请求可能仍在处理，请稍后再试。');
       else if (cause instanceof Error && cause.name === 'AbortError') return;
+      else if (isLocal) setError(`${cause instanceof Error ? cause.message : '本机识别失败'}。可重试或手动切换云端识别。`);
       else if (cause instanceof RecognitionError) setError(cause.message);
       else setError(navigator.onLine ? '连接中断，请检查网络后重新识别。' : '网络已断开，连接恢复后可重新识别。');
     } finally {
@@ -265,7 +294,7 @@ function App() {
   const cancel = () => {
     invalidate();
     setState('idle');
-    setError('已停止等待。需要时可重新选择照片。');
+    setError(isLocal ? '已取消本机识别并释放模型。' : '已停止等待。需要时可重新选择照片。');
   };
 
   const allTiles: EditableTile[] = [...(result?.tiles ?? []), ...manualTiles];
@@ -327,8 +356,30 @@ function App() {
         <div className="recognition-modes" role="group" aria-label="选择识别方式">
           <button className={`mode-button ${mode === 'fast' ? 'selected' : ''}`} aria-pressed={mode === 'fast'} disabled={busy || availability?.fastConfigured === false} onClick={() => chooseMode('fast')}>快速识别</button>
           <button className={`mode-button ${mode === 'precision' ? 'selected' : ''}`} aria-pressed={mode === 'precision'} disabled={busy || availability?.configured === false} onClick={() => chooseMode('precision')}>精细识别</button>
+          <button className={`mode-button ${isLocal ? 'selected' : ''}`} aria-pressed={isLocal} disabled={busy} onClick={() => chooseMode('local')}>本机识别</button>
         </div>
-        <p>{mode === 'fast' ? '更快、更轻巧，复杂照片请仔细核对。' : '适合复杂照片，首次识别可能需要多等一会儿。'}</p>
+        <div className="local-consent">
+          {localModel.phase === 'idle' && <>
+            <p>{isLocal ? '照片留在设备上。' : '当前使用云端识别。'}首次准备约 41.8 MB，允许后下次打开会自动加载。</p>
+            <button className="text-button" onClick={() => { localModel.prepare(); if (isLocal) rememberLocal(true); }}>
+              {isLocal ? '启用本机识别' : '后台准备本机识别'}
+            </button>
+          </>}
+          {localModel.phase === 'loading' && <>
+            <p role="status">{localModel.message} · {isLocal ? '可先拍照或选图' : '可继续云端识别'}</p>
+            <button className="text-button" onClick={localModel.stop}>取消准备</button>
+          </>}
+          {localModel.phase === 'ready' && <>
+            <p>{isLocal ? '本机模型已就绪，照片留在设备上。' : '本机模型已就绪，当前仍使用云端识别。'}</p>
+            {!isLocal && <button className="text-button" disabled={busy} onClick={() => chooseMode('local')}>使用本机识别</button>}
+            <button className="text-button" disabled={isLocal && busy} onClick={localModel.stop}>关闭本机准备</button>
+          </>}
+          {localModel.phase === 'failed' && <>
+            <p role="status">{localModel.message}{isLocal ? ' 可手动选择云端识别。' : ' 云端识别可继续使用。'}</p>
+            <button className="text-button" onClick={localModel.prepare}>重新准备</button>
+            <button className="text-button" onClick={localModel.stop}>关闭本机准备</button>
+          </>}
+        </div>
       </section>
       {result && <nav className="result-navigation" aria-label="结果快速导航"><a href="#hand-review" onClick={e => { e.preventDefault(); jumpTo('hand-review'); }}>核对 {visibleTiles.length} 张牌</a><a href="#hand-score" onClick={e => { e.preventDefault(); jumpTo('hand-score'); }}>胡牌 / 听牌</a></nav>}
       {configured === false && <p className="notice service-notice" role="status"><Icon name="info" size={18} />识别服务准备中，暂可拍照、选图和裁剪。</p>}
@@ -368,12 +419,12 @@ function App() {
         <input ref={libraryRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" aria-label="上传麻将照片" onChange={e => { void choosePhoto(e.target.files?.[0]); e.target.value = ''; }} />
       </div>
 
-      {offline && <p className="notice" role="status"><Icon name="alert" size={18} />当前没有网络，连接后即可识别。</p>}
+      {!isLocal && offline && <p className="notice" role="status"><Icon name="alert" size={18} />当前没有网络，连接后即可识别。</p>}
       {error && <div className="error-notice" role="alert"><Icon name="alert" size={19} /><p>{error}</p><button className="icon-button" onClick={() => setError(null)} aria-label="关闭提示"><Icon name="close" size={17} /></button></div>}
 
-      {state === 'recognizing' ? <div className="recognition-progress" role="status" aria-live="polite"><span className="spinner" /><div><strong>正在仔细看牌…</strong><p>{slow ? '服务正在启动，可能需要多等一会儿' : '请稍候，结果马上呈现'}</p></div><button className="text-button" onClick={cancel}>取消</button></div>
+      {state === 'recognizing' ? <div className="recognition-progress" role="status" aria-live="polite"><span className="spinner" /><div><strong>正在仔细看牌…</strong><p>{isLocal ? localStatus : slow ? '服务正在启动，可能需要多等一会儿' : '请稍候，结果马上呈现'}</p></div><button className="text-button" onClick={cancel}>取消</button></div>
         : state === 'preparing' ? <div className="recognition-progress" role="status"><span className="spinner" /><strong>正在准备照片…</strong></div>
-          : photo && !result ? <div className="actions photo-actions"><button className="primary-button" onClick={() => void startRecognition()} disabled={offline || configured === false}><Icon name="spark" />开始识别<Icon name="arrow" size={19} /></button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />换一张</button></div>
+          : photo && !result ? <div className="actions photo-actions"><button className="primary-button" onClick={() => void startRecognition()} disabled={isLocal ? localModel.phase !== 'ready' : offline || configured === false}><Icon name="spark" />开始识别<Icon name="arrow" size={19} /></button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />换一张</button></div>
             : !photo ? <div className="actions"><button className="primary-button" onClick={() => cameraRef.current?.click()}><Icon name="camera" />拍一张<Icon name="arrow" size={19} /></button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />从相册选</button></div> : null}
 
       {result && <section ref={resultSection} tabIndex={-1} id="hand-review" className="results" aria-label="识别结果" aria-live="polite">
@@ -388,7 +439,7 @@ function App() {
         <div className="hand-edit-actions"><button className="secondary-button" disabled={visibleTiles.length >= 18} onClick={() => { setSelectedTile(null); setLastAdded(null); setAddingTile(true); }}>＋ 添加麻将牌</button><span>漏牌可补入，多牌可点牌面删除</span></div>
         <div id="hand-score" tabIndex={-1}><ScoringPanel tiles={scoringTiles} resetKey={`${result.requestId}:${handReset}`} /></div>
         <div className="result-actions"><button className="primary-button" onClick={() => cameraRef.current?.click()}><Icon name="camera" size={20} />再拍一张</button><button className="secondary-button" onClick={() => libraryRef.current?.click()}><Icon name="image" size={19} />换照片</button></div>
-        <details className="result-details"><summary>识别详情</summary><dl><div><dt>识别方式</dt><dd>{result.recognitionMode === 'fast' ? '快速识别' : '精细识别'}</dd></div><div><dt>模型版本</dt><dd>{result.modelVersion}</dd></div><div><dt>处理耗时</dt><dd>{(result.timings.totalMs / 1000).toFixed(1)} 秒</dd></div><div><dt>请求编号</dt><dd>{result.requestId}</dd></div></dl></details>
+        <details className="result-details"><summary>识别详情</summary><dl><div><dt>识别方式</dt><dd>{modeLabels[result.recognitionMode ?? 'precision']}</dd></div><div><dt>模型版本</dt><dd>{result.modelVersion}</dd></div>{result.clientWaitMs !== undefined && <div><dt>本次总等待</dt><dd>{(result.clientWaitMs / 1000).toFixed(1)} 秒</dd></div>}{typeof result.gatewayMs === 'number' && Number.isFinite(result.gatewayMs) && <div><dt>网关耗时</dt><dd>{(result.gatewayMs / 1000).toFixed(1)} 秒</dd></div>}<div><dt>处理耗时</dt><dd>{(result.timings.totalMs / 1000).toFixed(1)} 秒</dd></div><div><dt>请求编号</dt><dd>{result.requestId}</dd></div></dl></details>
       </section>}
 
       <footer className="footer">

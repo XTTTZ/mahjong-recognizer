@@ -1,23 +1,66 @@
-import * as ort from 'onnxruntime-web/webgpu';
+import type { InferenceSession } from 'onnxruntime-web';
+let ort: typeof import('onnxruntime-web');
 import { classify, classifierPixels, nms, tensorPixels } from './pipeline';
 import { headPoints, MODEL_FILES, modelInfo, profileDefinition, profilePath, validateManifest, validateSessionIO, type Manifest, type ProfileId, type ModelFile } from './profiles';
-let detector:ort.InferenceSession|null=null,classifier:ort.InferenceSession|null=null,manifest:Manifest|null=null;
+let detector:InferenceSession|null=null,classifier:InferenceSession|null=null,manifest:Manifest|null=null;
 let profileId:ProfileId='portable-v1';
 let provider='',loadStats:Record<string,unknown>={},deviceInfo:Record<string,unknown>={},busy=false;
 const send=(type:string,value:unknown)=>postMessage({type,value});
-async function download(name:ModelFile,m:Manifest):Promise<Uint8Array>{
-  send('status',`下载${name==='detector.onnx'?'定位':'分类'}模型…`);
-  const response=await fetch(profilePath(profileId,name),{credentials:'omit'});
-  if(!response.ok||!response.body)throw new Error('模型下载失败，请稍后再试');
-  const expected=m.filesBytes[name];if(!Number.isInteger(expected)||expected<1||expected>160*1024*1024)throw new Error('模型清单大小无效');
-  const result=new Uint8Array(expected),reader=response.body.getReader();let pos=0,last=0;
-  try{while(true){const{value,done}=await reader.read();if(done)break;if(pos+value.length>expected)throw new Error('模型文件大小不符');result.set(value,pos);pos+=value.length;
-    if(performance.now()-last>250){send('status',`下载${name==='detector.onnx'?'定位':'分类'}模型 ${Math.round(pos/expected*100)}%`);last=performance.now();}}}
-  catch(error){await reader.cancel();throw error;}
-  if(pos!==expected)throw new Error('模型文件下载不完整');
-  const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',result))].map(v=>v.toString(16).padStart(2,'0')).join('');
-  if(hash!==m.filesSha256[name])throw new Error('模型校验失败，请清除浏览器缓存后重试');
-  return result;
+async function digestMatches(bytes: Uint8Array<ArrayBuffer>, expected: string): Promise<boolean> {
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('') === expected;
+}
+
+async function download(name: ModelFile, model: Manifest): Promise<Uint8Array<ArrayBuffer>> {
+  const url = profilePath(profileId, name);
+  const expected = model.filesBytes[name];
+  const hash = model.filesSha256[name];
+  const label = name === 'detector.onnx' ? '定位模型' : '分类模型';
+  // Some mobile browsers evict large HTTP responses even with immutable headers.
+  // Only the compact, explicitly requested model is retained across visits.
+  const key = new URL(url, self.location.origin);
+  key.searchParams.set('sha256', hash);
+  let cache: Cache | undefined;
+  if (profileId === 'compact-v10') {
+    try {
+      cache = await caches.open('mahjong-compact-weights-v1');
+      const stored = await cache.match(key.href);
+      if (stored) {
+        send('status', `正在校验已保存的${label}…`);
+        const bytes = new Uint8Array(await stored.arrayBuffer());
+        if (bytes.byteLength === expected && await digestMatches(bytes, hash)) return bytes;
+        await cache.delete(key.href);
+      }
+    } catch { /* Private browsing or exhausted storage still allows an in-memory session. */ }
+  }
+  send('status', `下载${label}…`);
+  const response = await fetch(url, { credentials: 'omit' });
+  if (!response.ok || !response.body) throw new Error('模型下载失败，请稍后再试');
+  const bytes = new Uint8Array(expected);
+  const reader = response.body.getReader();
+  let offset = 0;
+  let lastUpdate = 0;
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (offset + value.length > expected) throw new Error('模型文件大小不符');
+      bytes.set(value, offset);
+      offset += value.length;
+      if (performance.now() - lastUpdate > 250) {
+        send('status', `下载${label} ${Math.round(offset / expected * 100)}%`);
+        lastUpdate = performance.now();
+      }
+    }
+  } catch (error) {
+    await reader.cancel();
+    throw error;
+  }
+  if (offset !== expected || !await digestMatches(bytes, hash)) throw new Error('模型校验失败，请重新准备本机识别');
+  if (cache) {
+    try { await cache.put(key.href, new Response(bytes)); } catch { /* Storage is optional. */ }
+  }
+  return bytes;
 }
 async function release(){
   const sessions=[detector,classifier];detector=null;classifier=null;manifest=null;
@@ -29,6 +72,7 @@ async function load(requested:string,requestedProfile:unknown){
   if(!['wasm','webgpu'].includes(requested))throw new Error('运行方式无效');
   if(typeof OffscreenCanvas==='undefined'||typeof createImageBitmap!=='function')throw new Error('当前浏览器不支持后台图片处理，请更新浏览器');
   if(requested==='webgpu'&&!('gpu'in navigator))throw new Error('当前浏览器未提供 WebGPU，可改选 CPU/WASM');
+  ort = requested === 'wasm' ? await import('onnxruntime-web/wasm') : await import('onnxruntime-web/webgpu');
   if(requested==='webgpu'){
     const gpu=(navigator as unknown as {gpu:{requestAdapter:(options:Record<string,string>)=>Promise<unknown>}}).gpu;
     const adapter=await gpu.requestAdapter({powerPreference:'high-performance'});
@@ -38,7 +82,7 @@ async function load(requested:string,requestedProfile:unknown){
     deviceInfo={vendor:a.info?.vendor??'',architecture:a.info?.architecture??'',device:a.info?.device??'',description:a.info?.description??'',isFallbackAdapter:a.isFallbackAdapter??a.info?.isFallbackAdapter??null};
   }
   ort.env.wasm.numThreads=1;ort.env.wasm.proxy=false;
-  ort.env.wasm.wasmPaths=new URL('/ort/',self.location.origin).href;
+  ort.env.wasm.wasmPaths=new URL(requested === 'wasm' ? '/ort/1.23.2/' : '/ort/',self.location.origin).href;
   ort.env.logLevel='error';
   const response=await fetch(profilePath(profileId,'manifest.json'),{credentials:'omit'});if(!response.ok)throw new Error('所选模型尚未就绪，可稍后重试或手动选择原始对照');
   const m=validateManifest(await response.json(),profileId);
@@ -63,7 +107,7 @@ async function run(file:Blob,repeats:number){
     send('status',`本地识别 ${iteration+1}/${repeats}，可随时取消`);const start=performance.now();
     const resolution=manifest.resolution,size=manifest.classifierResolution;
     const pixels=tensorPixels(image,resolution),input=new ort.Tensor('float32',pixels,[1,3,resolution,resolution]);const pre=performance.now();
-    let output:ort.InferenceSession.ReturnType|undefined;
+    let output:InferenceSession.ReturnType|undefined;
     let boxes:ReturnType<typeof nms>,detEnd:number;
     try{output=await detector.run({images:input});detEnd=performance.now();
       if(output.output0.type!=='float32'||String(output.output0.dims)!==`1,5,${headPoints(resolution)}`)throw new Error('检测输出维度不符');
@@ -73,7 +117,7 @@ async function run(file:Blob,repeats:number){
     for(let first=0;first<boxes.length;first+=4){
       const part=boxes.slice(first,first+4),t=performance.now(),batch=classifierPixels(image,part,size);
       const tensor=new ort.Tensor('float32',batch,[part.length,3,size,size]),prepared=performance.now();
-      let out:ort.InferenceSession.ReturnType|undefined;
+      let out:InferenceSession.ReturnType|undefined;
       try{out=await classifier.run({images:tensor});const end=performance.now();cropMs+=prepared-t;clsMs+=end-prepared;
         if(out.logits.type!=='float32'||String(out.logits.dims)!==`${part.length},42`)throw new Error('分类输出维度不符');
         const logits=out.logits.data as Float32Array;

@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import fs from 'node:fs/promises';
 
 test.beforeEach(async ({ page }) => {
-  await page.route('**/api/warmup', route => route.fulfill({ json: { ready: true } }));
+  await page.route('**/api/warmup*', route => route.fulfill({ json: { ready: true } }));
 });
 
 const fullHand = ['1m','1m','1m','2m','2m','2m','3m','3m','3m','4m','4m','4m','5m','5m'];

@@ -60,6 +60,7 @@ class ModalCpuApp(unittest.TestCase):
         self.assertNotIn('gpu',options);self.assertNotIn('experimental_options',options)
         self.assertEqual(options['cpu'],(1,1));self.assertEqual(options['memory'],2048)
         self.assertEqual((options['min_containers'],options['max_containers']),(0,1))
+        self.assertEqual(options['scaledown_window'],120)
         self.assertTrue(options['enable_memory_snapshot']);self.assertEqual(entered,{'snap':True})
         self.assertTrue(asgi['requires_proxy_auth']);self.assertEqual(options['timeout'],90)
     def test_bounded_resources_and_remote_settings(self):

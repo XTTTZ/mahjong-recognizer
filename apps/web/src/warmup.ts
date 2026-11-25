@@ -1,13 +1,13 @@
-import type { RecognitionMode } from './types';
+import type { CloudRecognitionMode } from './types';
 
 /** One optional, independent warmup per selected service when the page becomes visible. */
 export const WARMUP_COOLDOWN_MS = 60_000;
 export const WARMUP_TIMEOUT_MS = 65_000;
 const SESSION_KEY = 'mahjong:warmup-at:v1';
-const memoryAttempts = new Map<RecognitionMode, number>();
-const inFlight = new Set<RecognitionMode>();
+const memoryAttempts = new Map<CloudRecognitionMode, number>();
+const inFlight = new Set<CloudRecognitionMode>();
 
-function previousAttempt(now: number, mode: RecognitionMode): number | null {
+function previousAttempt(now: number, mode: CloudRecognitionMode): number | null {
   let stored: number | null = null;
   try {
     const raw = window.sessionStorage.getItem(mode === 'precision' ? SESSION_KEY : `${SESSION_KEY}:fast`);
@@ -24,7 +24,7 @@ function previousAttempt(now: number, mode: RecognitionMode): number | null {
  * online listeners; it does not cancel an already-started optional warmup.
  * This makes React StrictMode remounts safe. No recognition request is issued.
  */
-export function warmupWhenVisible(mode: RecognitionMode = 'precision'): () => void {
+export function warmupWhenVisible(mode: CloudRecognitionMode = 'precision'): () => void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return () => {};
   let done = false;
   const removeListeners = () => {

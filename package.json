@@ -16,7 +16,8 @@
     "worker:types": "wrangler types --include-runtime false --strict-vars false",
     "worker:dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "worker:dev": "npm run build:web && wrangler dev",
-    "worker:deploy": "npm run build && wrangler deploy",
+    "models:stage": "node infra/web/stage-compact.mjs",
+    "worker:deploy": "npm run build && npm run models:stage && wrangler deploy",
     "test:e2e": "playwright test"
   },
   "dependencies": {

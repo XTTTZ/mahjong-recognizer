@@ -115,9 +115,12 @@ def make_suite(root, code_root=CODE, queue_id=QUEUE, allowed_gpu_paths=()):
 
 
 def write_plan(root, out, **options):
+    return write_suite_files(make_suite(root, **options), out)
+
+
+def write_suite_files(suite, out):
     out = Path(out)
     if out.exists(): raise FileExistsError('Choose a new immutable prepared plan')
-    suite = make_suite(root, **options)
     out.mkdir(parents=True)
     for name, value in (('suite.json', suite), ('queue.json', suite['queueConfig'])):
         (out/name).write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\n')
@@ -127,7 +130,7 @@ def write_plan(root, out, **options):
     scripts = {
         'prepare.cmd': f'set CUDA_VISIBLE_DEVICES=-1\r\n"{BASE_PYTHON}" "{code}/infra/windows/prepare_v6_host.py" --suite "{remote}"',
         'check.cmd': 'set CUDA_VISIBLE_DEVICES=-1\r\n'+launch,
-        'submit.cmd': launch+' --start',
+        'submit.cmd': launch+' --start'+(' --authorized-until "%~1"' if suite.get('requiresNewWindow') else ''),
         'watch.cmd': f'"{PYTHON}" "{code}/infra/windows/watch_queue.py" --queue "{suite["queueConfig"]["queue_dir"]}" --follow',
     }
     for name, command in scripts.items():

@@ -63,6 +63,7 @@ def main():
 def train_bounded_detector(args,train_options,run,initial_checkpoint):
     """Shared fixed-recipe loop for signed warm starts and fresh nano initialization."""
     signature=run['resumeSignature']
+    checkpoint_classes = {'0': 'tile'} if run['generic'] else run['classes']
     if (args.output/'run.json').exists():raise FileExistsError('Use an independent fresh run')
     if importlib.metadata.version('ultralytics')!=ULTRALYTICS_VERSION:raise RuntimeError('Use the pinned independent v6 environment')
     import torch
@@ -77,7 +78,7 @@ def train_bounded_detector(args,train_options,run,initial_checkpoint):
     def saved(trainer):
         nonlocal last_saved
         for checkpoint in (trainer.last,trainer.best):
-            if checkpoint.is_file():checkpoint_receipt(checkpoint,signature,{'0':'tile'})
+            if checkpoint.is_file():checkpoint_receipt(checkpoint,signature,checkpoint_classes)
         last_saved=trainer.epoch
     def fit_end(trainer):
         nonlocal completed,reason
@@ -100,7 +101,7 @@ def train_bounded_detector(args,train_options,run,initial_checkpoint):
     model.add_callback('on_model_save',saved);model.add_callback('on_fit_epoch_end',fit_end)
     with patch('ultralytics.data.utils.check_font',return_value=None):model.train(**train_options)
     for checkpoint in (args.output/'train/weights/last.pt',args.output/'train/weights/best.pt'):
-        if checkpoint.is_file():checkpoint_receipt(checkpoint,signature,{'0':'tile'})
+        if checkpoint.is_file():checkpoint_receipt(checkpoint,signature,checkpoint_classes)
     if not completed:raise RuntimeError('No complete validated detector epoch was saved')
     run.update(finishedAt=datetime.now(timezone.utc).isoformat(),completedEpochs=completed,plannedEpochs=args.epochs,
         completionReason=reason or 'epoch_limit_reached',convergenceClaim=False,elapsedTrainSeconds=time.monotonic()-started,

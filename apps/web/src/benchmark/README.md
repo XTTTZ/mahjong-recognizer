@@ -2,7 +2,7 @@
 
 `/benchmark` is a separate lazy route. Opening it creates no inference worker,
 model download, cloud warmup, API request, or photo upload. The user explicitly
-loads the selected profile plus a 25.5 MB WASM runtime. The compact profile is
+loads the selected profile plus its runtime (11.93 MB for CPU/WASM, 25.55 MB for WebGPU). The compact profile is
 preferred when configured; the original 119 MB profile remains an explicit control.
 Exact selected model bytes are shown from the verified manifest after opt-in. A dedicated
 module worker performs inference; cancel/release/unmount terminates that worker
@@ -13,8 +13,7 @@ and explicitly notes potential unsupported-operator fallback.
 The fixed same-origin manifest and both model files are fetched from
 `/models/compact-v10/` or `/models/portable-v1/`. Each model's exact bytes and SHA-256 are checked before
 session creation; the reviewed geometry, class ontology, thresholds and tensor
-shapes are validated. ONNX Runtime Web 1.23.2's WebGPU entry actually requests the
-matching `ort-wasm-simd-threaded.asyncify.{mjs,wasm}` files. The Vite external-WASM
+shapes are validated. ONNX Runtime Web 1.23.2 uses `ort-wasm-simd-threaded.{mjs,wasm}` for CPU/WASM and `ort-wasm-simd-threaded.asyncify.{mjs,wasm}` for WebGPU. The Vite external-WASM
 condition keeps these self-hosted under `/ort/` rather than baking the runtime
 into the worker or requesting a CDN. Do not substitute another version's binary.
 
@@ -22,7 +21,7 @@ The `/benchmark` document **and** `/assets/local.worker-*.js` must return the
 benchmark CSP (`script-src 'self' 'wasm-unsafe-eval'`, `worker-src 'self'`,
 `connect-src 'self'`) and `Cross-Origin-Embedder-Policy: require-corp`.
 `Cross-Origin-Opener-Policy: same-origin` is set on the document; resources are
-same-origin with CORP. The normal application's CSP need not be relaxed. The
+same-origin with CORP. The main page also supports local inference with the same dedicated worker after explicit opt-in. The
 worker itself needs its compatible COEP response header; omitting it was verified
 to fail with `coep-frame-resource-needs-coep-header` before model loading.
 

@@ -502,6 +502,10 @@ class ExperimentQueue:
             self.save(child_pid=None)
 
     def run(self):
+        hard_stop = self.config.get('authorized_until_epoch_seconds')
+        if self.config.get('requires_new_window') and (
+                type(hard_stop) not in (int, float) or not 0 < hard_stop - self.clock() <= 12 * 3600):
+            raise ValueError('This frozen template requires a fresh, unexpired training window of at most twelve hours')
         self.root.mkdir(parents=True, exist_ok=True)
         with QueueLock(self.root / "queue.lock"):
             state_path = self.root / "state.json"
@@ -513,7 +517,8 @@ class ExperimentQueue:
                 created = self.clock()
                 self.state = {"queue_id": self.config["queue_id"], "config_sha256": self.config_sha,
                     "created_at": now(), "created_epoch_seconds": created,
-                    "deadline_epoch_seconds": created + self.config.get("deadline_hours", 24) * 3600,
+                    "deadline_epoch_seconds": min(created + self.config.get("deadline_hours", 24) * 3600,
+                                                  hard_stop if hard_stop is not None else math.inf),
                     "state": "starting", "current_experiment": None, "current_run_dir": None, "current_step": None}
                 write_json(self.root / "config.json", self.config)
             if os.name == "nt":

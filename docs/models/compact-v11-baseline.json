@@ -1,0 +1,30 @@
+{
+  "detector": {
+    "checkpoint": {
+      "path": "D:/mahjong/runs/v9-portable-12h-20261109-v8n-800/train/weights/last.pt",
+      "sha256": "fc53b0ebc3eee93d426542e0bd352c413c04aa284d072242a2b5cf8478bfb12b"
+    },
+    "receipt": {
+      "path": "D:/mahjong/runs/v9-portable-12h-20261109-v8n-800/train/weights/last.pt.receipt.json",
+      "sha256": "75065dcef5b191bf778dda518a1aaf4e1097f37a76cddf0a5749ca75c360c7af"
+    },
+    "run": {
+      "path": "D:/mahjong/runs/v9-portable-12h-20261109-v8n-800/run.json",
+      "sha256": "72b1cc1bb77aba1876e938d45b2d48b7872904615a8fffe5551aa94b4c478158"
+    }
+  },
+  "classifier": {
+    "checkpoint": {
+      "path": "D:/mahjong/runs/v9-portable-12h-20261109-student-kd224-a02/best.pt",
+      "sha256": "6381bb1c3edd6b8f793bf801bc343c02a8ad8222c45fef1a748b693147caaa08"
+    },
+    "receipt": {
+      "path": "D:/mahjong/runs/v9-portable-12h-20261109-student-kd224-a02/best.pt.receipt.json",
+      "sha256": "30c53315270703d1e16c51054a9c459bdb3da0783f2b0d2cd4e33eafc02f25f1"
+    },
+    "run": {
+      "path": "D:/mahjong/runs/v9-portable-12h-20261109-student-kd224-a02/run.json",
+      "sha256": "d90778ba5fdd708f613c7917c1c76de1924f9db238fb52d568444b55bedfaadc"
+    }
+  }
+}

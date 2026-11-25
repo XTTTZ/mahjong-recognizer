@@ -22,6 +22,7 @@ npm run worker:types
 npm test
 npm run test:e2e
 npm run build
+npm run models:stage
 npm run worker:dry-run
 npx wrangler deploy
 ```
@@ -83,3 +84,11 @@ Worker只代理`/models/portable-v1/`下三个固定公开文件，以流式传�
 先访问 `/api/health`：`configured=false` 表示 URL、开关或 secret 未齐全；`configured=true` 只表示配置齐全。随后检查 `npx wrangler tail mahjong` 和 Modal App 日志，日志不得记录照片或凭据。
 
 `INFERENCE_ENABLED=false` 后重新部署可暂停 GPU 调用并继续提供前端工具。查看 `npx wrangler versions list`，使用 `npx wrangler rollback <VERSION_ID>` 可回滚到已知版本；注意同时核对回滚版本所绑定的 Modal URL 与模型版本，secret 不随前端源代码回滚。
+
+## 2026-11-25 首页识别延迟
+
+首页默认快速识别。页面可见时并行检查配置并预热 CPU，用户拍照和核对取景时容器可保持 120 秒。精细识别使用 GPU。本机模式由用户启用，下载及校验在后台进行，回访时通过 Cache Storage 复用已验证的模型。普通云端访问下载模型 0 字节。存储被浏览器回收时会重新准备。
+
+Cloudflare 版本 `e9c1feb1-2c82-42e0-9482-52f846f7c244`。M4 Pro 桌面 Chrome 的生产站测试用同一张已知 14 牌图。后台准备期间提交云端快速识别，点击到结果渲染 4.36 秒，网关内 2.85 秒，CPU 服务处理 0.83 秒，其中推理 0.44 秒。各计时范围嵌套。首次本机准备 30.66 秒，实际传输 32.59 MB。回访刷新到就绪 1.22 秒，权重和 WASM 传输 0 字节。本机三次识别 0.83–0.88 秒，三次牌面均正确。该设备和网络的结果不能推算手机或其他运营商的延迟。
+
+快速识别对长边超过 1600 像素的照片另外生成 JPEG（长边 1600、质量 0.83），在字节数更少时使用。精细识别、预览和本机版继续使用最长边 2560、质量 0.94。验证时在 Chromium 从相同原图生成两个版本，使用上线 V10 的 CPU ONNX、同一接受阈值和原始坐标系评估。冻结验证集中的 60 张大图上传总量从 83.96 MB 降到 21.50 MB。150 张自动整手正确从 135 到 136，至少 10 张牌的照片从 73/82 到 74/82，13–14 张牌保持 44/45。逐图检查中没有原本正确而压缩后错误的照片，误接受仍为 1/150。这次评估使用浏览器重新编码的验证照片。

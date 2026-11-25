@@ -11,7 +11,7 @@ for (const pathname of ['/', '/benchmark']) {
       if (/\/models\/|\/ort\/|local[._-]worker|onnxruntime[-_]web/i.test(url.pathname)) localResources.push(url.pathname);
       if (url.pathname === '/api/recognize' || url.hostname.endsWith('.modal.run')) gpuRequests.push(request.url());
     });
-    await page.route('**/api/warmup', route => { warmups++; return route.fulfill({ json: { ready: true } }); });
+    await page.route('**/api/warmup*', route => { warmups++; return route.fulfill({ json: { ready: true } }); });
     await page.route('**/api/health', route => route.fulfill({ json: { configured: true, inferenceProbed: false } }));
     // These guards also prevent accidental heavy downloads if lazy loading regresses.
     await page.route('**/models/**', route => route.abort());

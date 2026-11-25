@@ -1,7 +1,7 @@
 """Fresh COCO-initialized nano detector with a complete-epoch wall-time budget.
 
 Preflight verifies bytes and train/valid provenance without loading a model.
-This is a new one-class detector, never a small-model warm start from YOLO-s.
+Each run starts from pinned COCO weights with either binary or 42-face labels.
 """
 import argparse
 from datetime import datetime, timezone
@@ -67,8 +67,11 @@ def reviewed_derivative(prepared, review_path, contract):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    for name in ('dataset', 'prepared', 'weights', 'background-review', 'output'):
+    for name in ('dataset', 'prepared', 'weights', 'output'):
         p.add_argument('--'+name, type=Path, required=True)
+    source = p.add_mutually_exclusive_group(required=True)
+    source.add_argument('--background-review', type=Path, help='Train the reviewed one-class locator')
+    source.add_argument('--face-manifest', type=Path, help='Train one-stage recognition on the frozen V4 face splits')
     p.add_argument('--resolution', type=int, choices=(640, 800, 960), default=800)
     p.add_argument('--epochs', type=int, default=45)
     p.add_argument('--batch', type=int, default=8)
@@ -84,15 +87,27 @@ def main():
     contract = dataset_contract(args.dataset, verify_images=True)
     if contract['ontology'] != 'faces42':
         raise ValueError('Nano training requires the reviewed 42-face source')
-    derivative = reviewed_derivative(args.prepared, args.background_review, contract)
+    generic = args.background_review is not None
+    if generic:
+        derivative = reviewed_derivative(args.prepared, args.background_review, contract)
+    else:
+        frozen = json.loads(args.face_manifest.read_text(encoding='utf-8'))['prepared_splits']
+        for split, actual in contract['splits'].items():
+            expected = frozen[split]
+            if (actual['annotationSha256'], actual['images'], actual['annotations']) != (
+                    expected['annotation_sha256'], expected['images'], expected['annotations']):
+                raise ValueError('Direct 42-face training data differs from the frozen V4 ' + split + ' split')
+        derivative = verify_prepared(args.prepared, contract, False) if (args.prepared/'prepared.json').is_file() else None
+        initial['semantics'] = 'new 42-face detector; fresh optimizer and schedule'
     ready = derivative is not None
     train_options = options(args)
     config = {k: v for k, v in train_options.items() if k not in {'data', 'project', 'name'}}
     config.update(geometry=args.geometry, maximumTrainMinutes=args.max_train_minutes,
                   initialization='official_coco_pretrained', oomPolicy='fail_without_batch_changes')
     signature = shared_signature(contract, config, args.weights)
-    signature.update(initialization=initial, backgroundReviewSha256=sha256(args.background_review),
+    signature.update(initialization=initial,
                      derivativeSha256=sha256(args.prepared/'prepared.json') if ready else None)
+    signature['backgroundReviewSha256' if generic else 'faces42ManifestSha256'] = sha256(args.background_review or args.face_manifest)
     source_root = Path(__file__).resolve().parents[1]
     for name in ('train/yolo_train_v9.py', 'train/yolo_train_v6.py',
                  'train/v6_common.py', 'data/prepare_background_v6.py'):
@@ -104,8 +119,8 @@ def main():
                           'dataContract': contract, 'testOpened': False}))
         return
     if not ready:
-        raise FileNotFoundError('Prepare the reviewed train-only derivative before training')
-    run = {'architecture': 'yolov8n-generic', 'generic': True,
+        raise FileNotFoundError('Prepare the signed YOLO derivative before training')
+    run = {'architecture': 'yolov8n-generic' if generic else 'yolov8n', 'generic': generic,
            'resolution': args.resolution, 'classes': contract['classes'], 'ontology': 'faces42',
            'resumeSignature': signature, 'config': config, 'initialization': initial,
            'initializationNote': 'Independent COCO-initialized nano detector',

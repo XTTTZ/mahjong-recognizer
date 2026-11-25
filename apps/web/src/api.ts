@@ -1,4 +1,4 @@
-import type { RecognitionMode, RecognitionResult, ServiceAvailability } from './types';
+import type { CloudRecognitionMode, RecognitionResult, ServiceAvailability } from './types';
 
 export class RecognitionError extends Error {
   constructor(message: string, readonly code: string, readonly requestId?: string) {
@@ -57,7 +57,7 @@ export function parseResult(value: unknown): RecognitionResult {
   return value as unknown as RecognitionResult;
 }
 
-export async function recognize(file: File, signal: AbortSignal, mode: RecognitionMode = 'precision'): Promise<RecognitionResult> {
+export async function recognize(file: File, signal: AbortSignal, mode: CloudRecognitionMode = 'precision'): Promise<RecognitionResult> {
   const body = new FormData();
   body.append('image', file);
   const response = await fetch(mode === 'fast' ? '/api/recognize?mode=fast' : '/api/recognize', {

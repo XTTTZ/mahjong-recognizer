@@ -135,6 +135,9 @@ def submit(suite_path, suite, receipt):
     if os.name != 'nt':
         raise RuntimeError('WMI submission must be run on the prepared Windows host')
     config = suite['queueConfig']
+    if suite.get('requiresNewWindow') and (not config.get('authorized_until_epoch_seconds')
+            or config['authorized_until_epoch_seconds'] <= time.time()):
+        raise ValueError('A new unexpired training window is required')
     identifier = config['queue_id'] + '-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
     launch = Path('D:/mahjong/queue-launches') / identifier
     launch.mkdir(parents=True, exist_ok=False)
@@ -181,12 +184,26 @@ def submit(suite_path, suite, receipt):
     return result
 
 
+def bind_new_window(suite, until, now):
+    if not until:
+        raise ValueError('Provide the newly authorized end time with timezone using --authorized-until')
+    value = datetime.fromisoformat(until)
+    if value.tzinfo is None or not 0 < value.timestamp() - now <= 12 * 3600:
+        raise ValueError('The training deadline must be timezone-aware, future and within twelve hours')
+    if Path(suite['queueConfig']['queue_dir']).exists():
+        raise FileExistsError('Use a fresh queue ID for a new window')
+    suite['queueConfig']['authorized_until_epoch_seconds'] = value.timestamp()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--suite', type=Path, required=True)
     parser.add_argument('--start', action='store_true', help='Explicitly authorize WMI background training submission')
+    parser.add_argument('--authorized-until', help='Absolute ISO8601 end of a newly authorized training window')
     args = parser.parse_args()
     suite = read_json(args.suite)
+    if args.start and suite.get('requiresNewWindow'):
+        bind_new_window(suite, args.authorized_until, time.time())
     receipt = validate_suite(suite)
     print(json.dumps(submit(args.suite, suite, receipt) if args.start else receipt, ensure_ascii=False), flush=True)
 

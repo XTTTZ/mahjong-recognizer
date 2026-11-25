@@ -9,6 +9,8 @@ export default defineConfig({
       for (const ext of ['mjs', 'wasm']) {
         // The pinned 1.23.2 WebGPU entry uses asyncify (not the older JSEP
         // binary). Keep both files from this exact npm build.
+        const wasmOnly = `ort-wasm-simd-threaded.${ext}`;
+        this.emitFile({ type: 'asset', fileName: `ort/1.23.2/${wasmOnly}`, source: readFileSync(`node_modules/onnxruntime-web/dist/${wasmOnly}`) });
         const name = `ort-wasm-simd-threaded.asyncify.${ext}`;
         this.emitFile({ type: 'asset', fileName: `ort/${name}`, source: readFileSync(`node_modules/onnxruntime-web/dist/${name}`) });
       }
