@@ -1,67 +1,12 @@
 import type { InferenceSession } from 'onnxruntime-web';
 let ort: typeof import('onnxruntime-web');
 import { classify, classifierPixels, nms, tensorPixels } from './pipeline';
-import { headPoints, MODEL_FILES, modelInfo, profileDefinition, profilePath, validateManifest, validateSessionIO, type Manifest, type ProfileId, type ModelFile } from './profiles';
+import { headPoints, modelInfo, profileDefinition, profilePath, validateManifest, validateSessionIO, type Manifest, type ProfileId } from './profiles';
+import { loadWeights } from './weights';
 let detector:InferenceSession|null=null,classifier:InferenceSession|null=null,manifest:Manifest|null=null;
 let profileId:ProfileId='portable-v1';
 let provider='',loadStats:Record<string,unknown>={},deviceInfo:Record<string,unknown>={},busy=false;
 const send=(type:string,value:unknown)=>postMessage({type,value});
-async function digestMatches(bytes: Uint8Array<ArrayBuffer>, expected: string): Promise<boolean> {
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('') === expected;
-}
-
-async function download(name: ModelFile, model: Manifest): Promise<Uint8Array<ArrayBuffer>> {
-  const url = profilePath(profileId, name);
-  const expected = model.filesBytes[name];
-  const hash = model.filesSha256[name];
-  const label = name === 'detector.onnx' ? '定位模型' : '分类模型';
-  // Some mobile browsers evict large HTTP responses even with immutable headers.
-  // Only the compact, explicitly requested model is retained across visits.
-  const key = new URL(url, self.location.origin);
-  key.searchParams.set('sha256', hash);
-  let cache: Cache | undefined;
-  if (profileId === 'compact-v10') {
-    try {
-      cache = await caches.open('mahjong-compact-weights-v1');
-      const stored = await cache.match(key.href);
-      if (stored) {
-        send('status', `正在校验已保存的${label}…`);
-        const bytes = new Uint8Array(await stored.arrayBuffer());
-        if (bytes.byteLength === expected && await digestMatches(bytes, hash)) return bytes;
-        await cache.delete(key.href);
-      }
-    } catch { /* Private browsing or exhausted storage still allows an in-memory session. */ }
-  }
-  send('status', `下载${label}…`);
-  const response = await fetch(url, { credentials: 'omit' });
-  if (!response.ok || !response.body) throw new Error('模型下载失败，请稍后再试');
-  const bytes = new Uint8Array(expected);
-  const reader = response.body.getReader();
-  let offset = 0;
-  let lastUpdate = 0;
-  try {
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (offset + value.length > expected) throw new Error('模型文件大小不符');
-      bytes.set(value, offset);
-      offset += value.length;
-      if (performance.now() - lastUpdate > 250) {
-        send('status', `下载${label} ${Math.round(offset / expected * 100)}%`);
-        lastUpdate = performance.now();
-      }
-    }
-  } catch (error) {
-    await reader.cancel();
-    throw error;
-  }
-  if (offset !== expected || !await digestMatches(bytes, hash)) throw new Error('模型校验失败，请重新准备本机识别');
-  if (cache) {
-    try { await cache.put(key.href, new Response(bytes)); } catch { /* Storage is optional. */ }
-  }
-  return bytes;
-}
 async function release(){
   const sessions=[detector,classifier];detector=null;classifier=null;manifest=null;
   await Promise.allSettled(sessions.filter(s=>s!==null).map(s=>s.release()));
@@ -87,15 +32,13 @@ async function load(requested:string,requestedProfile:unknown){
   const response=await fetch(profilePath(profileId,'manifest.json'),{credentials:'omit'});if(!response.ok)throw new Error('所选模型尚未就绪，可稍后重试或手动选择原始对照');
   const m=validateManifest(await response.json(),profileId);
   manifest=m;send('manifest',modelInfo(m,profileId));
-  let downloaded=0,compiled=0;
-  for(const name of MODEL_FILES){
-    const begin=performance.now();const bytes=await download(name,m);downloaded+=performance.now()-begin;
-    send('status',`正在初始化${name==='detector.onnx'?'定位':'分类'}模型…`);const init=performance.now();
-    const session=await ort.InferenceSession.create(bytes,{executionProviders:[requested],graphOptimizationLevel:'all'});compiled+=performance.now()-init;
-    if(name==='detector.onnx')detector=session;else classifier=session;
-    validateSessionIO(session,m,name);
-  }
-  loadStats={...modelInfo(m,profileId),downloadAndHashMs:downloaded,sessionCreateMs:compiled,totalLoadMs:performance.now()-started,modelBytes:Object.values(m.filesBytes).reduce((a,b)=>a+b,0)};
+  const timings = await loadWeights(profileId, m, message => send('status', message), async (name, bytes) => {
+    const session = await ort.InferenceSession.create(bytes, { executionProviders: [requested], graphOptimizationLevel: 'all' });
+    if (name === 'detector.onnx') detector = session;
+    else classifier = session;
+    validateSessionIO(session, m, name);
+  });
+  loadStats = { ...modelInfo(m, profileId), ...timings, totalLoadMs: performance.now() - started };
   send('ready',loadStats);
 }
 async function run(file:Blob,repeats:number){
